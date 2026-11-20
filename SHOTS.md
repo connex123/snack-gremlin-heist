@@ -10,7 +10,7 @@ and the rest of the scene still appears.
 1. Plug the laptop in if you can. Open the place in Roblox Studio: **Snack Gremlin Heist**
    (place 87862033840794). Maximise the Studio window. Open **View > Output**.
 2. Press **Play** (F5, the solo Play button, not "Run").
-3. **Wait until the Output shows these three lines** (about 10-20 seconds on a laptop):
+3. **Wait until the Output shows these three lines**, in any order (about 10-20 seconds on a laptop):
    - `[SnackGremlinHeist] server ready`
    - `[ShotDirector] server ready`
    - `[ShotDirector] ready: press 1 cover, 2 buy, 3 threat, 4 progress, 0 back to play`
@@ -20,7 +20,8 @@ and the rest of the scene still appears.
 5. Press **1** and **wait 4 seconds**. The Output shows `[ShotDirector] staged cover`. Capture the game
    view and save it as `1-cover.jpg`.
 6. Press **2**, wait **4 seconds**, capture → `2-buy.jpg`.
-7. Press **3**, wait **4 seconds**, capture → `3-threat.jpg`.
+7. Press **3**, wait **4 seconds**, capture → `3-threat.jpg`. Capture within 20 seconds: after 30 seconds
+   the pirates walk away (press 3 again to restage them).
 8. Press **4**, wait **4 seconds**, capture → `4-progress.jpg`.
 9. Select everything in the Output (click in it, Ctrl+A, Ctrl+C) and keep it with the screenshots.
 10. Press **0** (normal camera), then Stop.
@@ -29,9 +30,9 @@ Shots can be taken in any order, and any key can be pressed again.
 
 ## What each shot should show
 
-All four shots have a thin dark strip along the very top of the screen listing the game's real counts, for
-example `64 GREMLINS · 8 RARITIES · 8 MUTATIONS · 6 STALLS · 5 EVENTS · SURGE · PIRATES · BOSS · LOCK ·
-FUSE · ORDERS · REBIRTH`. Below the strip on the right is the game title. Under the title is the
+All four shots have a dark bar across the top centre with two lines of yellow text, the game's real counts:
+`64 GREMLINS · 8 RARITIES · 8 MUTATIONS · 6 STALLS · 5 EVENTS` and
+`SURGE · PIRATES · BOSS · LOCK · FUSE · ORDERS · REBIRTH`. Below the bar on the right is the game title. Under the title is the
 **TONIGHT'S ORDERS** panel with three orders, each with a progress bar and a reward.
 
 **1 — cover.** You look down into your stall from above the lane. It should show:
@@ -68,6 +69,9 @@ FUSE · ORDERS · REBIRTH`. Below the strip on the right is the game title. Unde
 - A red **PEPPER HOUR!** banner at the top.
 
 ## If a key fails (fallback)
+
+0. **The `[ShotDirector] ready…` line never appears** after 30 seconds: press Stop, then Play once more and
+   go back to step 3. If it still does not appear, use step 3 below for all four shots.
 
 1. **Nothing happens after a key.** Click the 3D view once more, wait 2 seconds and press the key again.
    If the Output says `no reply from the server` or `could not stage`, press the key once more after
