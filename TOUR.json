@@ -1,6 +1,6 @@
 {"tour": 1, "steps": [
-  {"screenshot": "1-cover.jpg", "keys": ["One"], "wait_ms": 3000},
-  {"screenshot": "2-buy.jpg", "keys": ["Two"], "wait_ms": 3000},
-  {"screenshot": "3-threat.jpg", "keys": ["Three"], "wait_ms": 3000},
-  {"screenshot": "4-progress.jpg", "keys": ["Four"], "wait_ms": 3000}
+  {"screenshot": "1-cover.jpg", "keys": ["One"], "wait_ms": 4000},
+  {"screenshot": "2-buy.jpg", "keys": ["Two"], "wait_ms": 4000},
+  {"screenshot": "3-threat.jpg", "keys": ["Three"], "wait_ms": 4000},
+  {"screenshot": "4-progress.jpg", "keys": ["Four"], "wait_ms": 4000}
 ]}
