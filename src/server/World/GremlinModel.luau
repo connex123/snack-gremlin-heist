@@ -15,6 +15,9 @@ local GremlinModel = {}
 local WHITE = Color3.new(1, 1, 1)
 local BLACK = Color3.fromRGB(20, 20, 24)
 local DARK = Color3.fromRGB(50, 35, 30)
+local CHEEK = Color3.fromRGB(255, 120, 150)
+local MOUTH = Color3.fromRGB(70, 10, 20)
+local TONGUE = Color3.fromRGB(255, 90, 110)
 
 type Builder = {
 	model: Model,
@@ -69,14 +72,18 @@ local function buildBody(b: Builder): number
 		addPart(b, "Belly", Vector3.new(1.5, 1.3, 0.2), CFrame.new(0, 1.8, -1.05), r.accent)
 		top, faceZ, halfWidth, mid = 3.3, -1.05, 1.2, 2.1
 	end
-	-- Big googly eyes and a grin: the gremlin face.
+	-- Big googly eyes with pupils and highlights, blushing cheeks and an open grin: the gremlin face.
 	local eyeY = top - 0.75
 	for _, side in { -1, 1 } do
-		addPart(b, "Eye", Vector3.new(0.95, 0.95, 0.95), CFrame.new(side * 0.45, eyeY, faceZ - 0.1), WHITE, Enum.PartType.Ball)
-		addPart(b, "Pupil", Vector3.new(0.45, 0.45, 0.45), CFrame.new(side * 0.42, eyeY - 0.05, faceZ - 0.5), BLACK, Enum.PartType.Ball)
+		addPart(b, "Eye", Vector3.new(1.1, 1.1, 1.1), CFrame.new(side * 0.5, eyeY, faceZ - 0.1), WHITE, Enum.PartType.Ball)
+		addPart(b, "Pupil", Vector3.new(0.55, 0.55, 0.55), CFrame.new(side * 0.46, eyeY - 0.05, faceZ - 0.56), BLACK, Enum.PartType.Ball)
+		addPart(b, "Shine", Vector3.new(0.2, 0.2, 0.2), CFrame.new(side * 0.46 + 0.12, eyeY + 0.12, faceZ - 0.8), WHITE, Enum.PartType.Ball, Enum.Material.Neon)
+		addPart(b, "Cheek", Vector3.new(0.5, 0.32, 0.2), CFrame.new(side * 0.95, eyeY - 0.6, faceZ + 0.02), CHEEK, Enum.PartType.Ball)
+		addPart(b, "Brow", Vector3.new(0.6, 0.14, 0.14), CFrame.new(side * 0.5, eyeY + 0.68, faceZ - 0.2) * CFrame.Angles(0, 0, math.rad(side * -14)), DARK)
 	end
-	addPart(b, "Mouth", Vector3.new(0.9, 0.18, 0.2), CFrame.new(0, eyeY - 0.75, faceZ - 0.05), BLACK)
-	addPart(b, "Tooth", Vector3.new(0.22, 0.22, 0.12), CFrame.new(0.2, eyeY - 0.9, faceZ - 0.1), WHITE)
+	addPart(b, "Mouth", Vector3.new(1.0, 0.42, 0.2), CFrame.new(0, eyeY - 0.8, faceZ - 0.02), MOUTH)
+	addPart(b, "Tongue", Vector3.new(0.5, 0.18, 0.12), CFrame.new(0, eyeY - 0.95, faceZ - 0.1), TONGUE)
+	addPart(b, "Tooth", Vector3.new(0.24, 0.2, 0.1), CFrame.new(0.22, eyeY - 0.66, faceZ - 0.12), WHITE)
 	addPart(b, "ArmL", Vector3.new(0.45, 1.3, 0.45), CFrame.new(-halfWidth - 0.2, mid, -0.2) * CFrame.Angles(0, 0, math.rad(-35)), r.body)
 	addPart(b, "ArmR", Vector3.new(0.45, 1.3, 0.45), CFrame.new(halfWidth + 0.2, mid, -0.2) * CFrame.Angles(0, 0, math.rad(35)), r.body)
 	return top
@@ -301,6 +308,7 @@ function GremlinModel.applyMutation(model: Model, mutationName: string?, priorit
 	local body = model:FindFirstChild("Body")
 	if body then
 		local sparkle = Instance.new("ParticleEmitter")
+		sparkle.Name = "MutationSparkle"
 		sparkle.Color = ColorSequence.new(mutation.particle)
 		sparkle.LightEmission = 1
 		sparkle.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 0) })
@@ -308,6 +316,40 @@ function GremlinModel.applyMutation(model: Model, mutationName: string?, priorit
 		sparkle.Lifetime = NumberRange.new(0.8, 1.4)
 		sparkle.Speed = NumberRange.new(1.5, 3)
 		sparkle.SpreadAngle = Vector2.new(180, 180)
+		if mutation.effect == "haze" then
+			-- Harmattan Dust: big, soft, slow golden haze drifting sideways
+			sparkle.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.2), NumberSequenceKeypoint.new(1, 2.6) })
+			sparkle.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.5), NumberSequenceKeypoint.new(1, 1) })
+			sparkle.LightEmission = 0.4
+			sparkle.Rate = 22
+			sparkle.Lifetime = NumberRange.new(1.5, 2.5)
+			sparkle.Speed = NumberRange.new(0.6, 1.4)
+			sparkle.Acceleration = Vector3.new(1.5, 0.3, 0)
+		elseif mutation.effect == "lace" then
+			-- Owambe Lace: gold sparkles plus a lace band of neon dots around the body
+			sparkle.Rate = 24
+			sparkle.Color = ColorSequence.new(mutation.particle, Color3.fromRGB(255, 255, 255))
+			local radius = math.max(body.Size.X, body.Size.Z) / 2 + 0.05
+			for i = 0, 7 do
+				local angle = i * math.pi / 4
+				local dot = Instance.new("Part")
+				dot.Name = "LaceDot"
+				dot.Shape = Enum.PartType.Ball
+				dot.Size = Vector3.new(0.35, 0.35, 0.35) * (body.Size.Y / 2.6)
+				dot.Color = mutation.particle
+				dot.Material = Enum.Material.Neon
+				dot.CanCollide = false
+				dot.CanTouch = false
+				dot.CanQuery = false
+				dot.Massless = true
+				dot.CFrame = body.CFrame * CFrame.new(math.sin(angle) * radius, (i % 2) * 0.3 - 0.15, math.cos(angle) * radius)
+				local weld = Instance.new("WeldConstraint")
+				weld.Part0 = body :: BasePart
+				weld.Part1 = dot
+				weld.Parent = dot
+				dot.Parent = model
+			end
+		end
 		sparkle.Parent = body
 	end
 end
@@ -356,13 +398,38 @@ function GremlinModel.attachLabel(model: Model, gremlin: GremlinCatalog.Gremlin,
 	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	layout.Parent = gui
 	local h = price and 0.25 or 1 / 3
-	makeText(gui, "NameLine", gremlin.name, Color3.new(1, 1, 1), h * 1.08, 1)
+	makeText(gui, "NameLine", gremlin.name, Color3.new(1, 1, 1), h * 1.05, 1, Color3.fromRGB(15, 10, 20))
+	-- the rarity (and mutation) in a solid coloured pill
 	local rarityText = string.upper(rarity.name)
 	if mutation then
 		rarityText = string.upper(mutation.name) .. " " .. rarityText
 	end
-	makeText(gui, "RarityLine", rarityText, mutation and mutation.color or rarity.color, h * 0.92, 2, Color3.fromRGB(25, 10, 30))
-	makeText(gui, "IncomeLine", Format.perSecond(incomePerSecond), Color3.fromRGB(80, 255, 90), h, 3, Color3.fromRGB(0, 50, 0))
+	local pillRow = Instance.new("Frame")
+	pillRow.Name = "RarityLine"
+	pillRow.BackgroundTransparency = 1
+	pillRow.Size = UDim2.fromScale(1, h * 0.9)
+	pillRow.LayoutOrder = 2
+	pillRow.Parent = gui
+	local pill = Instance.new("Frame")
+	pill.Name = "Pill"
+	pill.AnchorPoint = Vector2.new(0.5, 0.5)
+	pill.Position = UDim2.fromScale(0.5, 0.5)
+	pill.Size = UDim2.fromScale(0.86, 0.86)
+	pill.BackgroundColor3 = mutation and mutation.color or rarity.color
+	pill.Parent = pillRow
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0.5, 0)
+	corner.Parent = pill
+	local pillStroke = Instance.new("UIStroke")
+	pillStroke.Thickness = 3
+	pillStroke.Color = Color3.fromRGB(20, 12, 25)
+	pillStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	pillStroke.Parent = pill
+	local pillText = makeText(pill, "Text", rarityText, Color3.new(1, 1, 1), 0.8, 1, Color3.fromRGB(20, 12, 25))
+	pillText.AnchorPoint = Vector2.new(0.5, 0.5)
+	pillText.Position = UDim2.fromScale(0.5, 0.5)
+	pillText.Size = UDim2.fromScale(0.92, 0.8)
+	makeText(gui, "IncomeLine", Format.perSecond(incomePerSecond), Color3.fromRGB(80, 255, 90), h * 1.05, 3, Color3.fromRGB(0, 50, 0))
 	if price then
 		makeText(gui, "PriceLine", Format.money(price), Color3.fromRGB(255, 220, 60), h, 4, Color3.fromRGB(60, 30, 0))
 	end
@@ -370,7 +437,64 @@ function GremlinModel.attachLabel(model: Model, gremlin: GremlinCatalog.Gremlin,
 end
 
 -- Builds a whole gremlin model with its feet at `pivot`; the root is anchored.
-function GremlinModel.build(gremlinId: string, mutationName: string?, pivot: CFrame, priorityGlow: boolean?): Model?
+-- Mythic, Divine and Secret gremlins on a player's stall stand in an aura: a neon ring at their feet, a
+-- soft light pillar that stops below the label, and rising sparks. Rainbow mutations cycle its colour.
+function GremlinModel.addAura(model: Model, rarityName: string, mutationName: string?)
+	local rarity = Rarities.get(rarityName)
+	local root = model.PrimaryPart
+	if rarity.tier < 6 or not root then
+		return
+	end
+	local mutation = Mutations.get(mutationName)
+	local color = mutation and mutation.particle or rarity.color
+	local top = (model:GetAttribute("TopHeight") or 4) :: number
+	local function auraPart(name: string, size: Vector3, offset: CFrame, transparency: number): Part
+		local part = Instance.new("Part")
+		part.Name = name
+		part.Shape = Enum.PartType.Cylinder
+		part.Size = size
+		part.Color = color
+		part.Material = Enum.Material.Neon
+		part.Transparency = transparency
+		part.CanCollide = false
+		part.CanTouch = false
+		part.CanQuery = false
+		part.CastShadow = false
+		part.Massless = true
+		part.CFrame = root.CFrame * offset
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0 = root
+		weld.Part1 = part
+		weld.Parent = part
+		part.Parent = model
+		if mutationName == "Rainbow" then
+			CollectionService:AddTag(part, "RainbowPart")
+		end
+		return part
+	end
+	auraPart("AuraRing", Vector3.new(0.25, 5.6, 5.6), CFrame.new(0, 0.1, 0) * UPRIGHT_CYLINDER, 0.15)
+	local pillarHeight = math.max(1, top - 0.4)
+	local pillar = auraPart("AuraPillar", Vector3.new(pillarHeight, 4.6, 4.6), CFrame.new(0, pillarHeight / 2, 0) * UPRIGHT_CYLINDER, 0.86)
+	local sparks = Instance.new("ParticleEmitter")
+	sparks.Name = "AuraSparks"
+	sparks.Color = ColorSequence.new(color, Color3.new(1, 1, 1))
+	sparks.LightEmission = 1
+	sparks.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(1, 0) })
+	sparks.Lifetime = NumberRange.new(0.8, 1.2)
+	sparks.Speed = NumberRange.new(3, 5)
+	sparks.Rate = 18
+	sparks.EmissionDirection = Enum.NormalId.Right -- the pillar's length axis points up
+	sparks.SpreadAngle = Vector2.new(8, 8)
+	sparks.Parent = pillar
+	local light = Instance.new("PointLight")
+	light.Color = color
+	light.Brightness = 2
+	light.Range = 10
+	light.Parent = pillar
+end
+
+-- `onStall` builds the bigger stall version (ShotFraming.stallScale) used on the player's pedestals.
+function GremlinModel.build(gremlinId: string, mutationName: string?, pivot: CFrame, priorityGlow: boolean?, onStall: boolean?): Model?
 	local gremlin = GremlinCatalog.get(gremlinId)
 	if not gremlin then
 		warn("Unknown gremlin " .. tostring(gremlinId))
@@ -390,7 +514,8 @@ function GremlinModel.build(gremlinId: string, mutationName: string?, pivot: CFr
 	root.CFrame = CFrame.new()
 	root.Parent = model
 	model.PrimaryPart = root
-	local b: Builder = { model = model, root = root, s = rarity.scale, top = 0, recipe = gremlin.recipe }
+	local scale = if onStall then ShotFraming.stallScale(rarity.scale) else rarity.scale
+	local b: Builder = { model = model, root = root, s = scale, top = 0, recipe = gremlin.recipe }
 	b.top = buildBody(b)
 	local hat = HATS[gremlin.recipe.hat]
 	if hat then

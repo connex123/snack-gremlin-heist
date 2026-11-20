@@ -55,6 +55,10 @@ local TOPS = { Ball = 3.4, Tall = 4.3 }
 local function topHeight(gremlin)
 	return ((TOPS[gremlin.recipe.shape] or 3.3) + 1.2) * Rarities.get(gremlin.rarity).scale
 end
+-- the player's own stall builds gremlins bigger (ShotFraming.stallScale)
+local function stallTopHeight(gremlin)
+	return ((TOPS[gremlin.recipe.shape] or 3.3) + 1.2) * F.stallScale(Rarities.get(gremlin.rarity).scale)
+end
 
 -- Projects a world point; returns pixel x, y and depth (or nil behind the camera).
 local function project(cam, fov, w, h, p)
@@ -73,11 +77,13 @@ end
 
 -- HUD rectangles in screen scale (x0, y0, x1, y1), kept in sync with Hud/Buttons by hand.
 local HUD = {
+	{ "feature strip", 0.17, 0, 0.83, 0.042 },
+	{ "event banner", 0.27, 0.048, 0.73, 0.153 },
+	{ "logo", 0.8, 0.048, 0.99, 0.12 },
 	{ "cash", 0.012, 0.13, 0.232, 0.31 },
 	{ "carry card", 0.012, 0.325, 0.232, 0.455 },
-	{ "event banner", 0.24, 0.012, 0.76, 0.127 },
+	{ "orders", 0.8, 0.135, 0.99, 0.42 },
 	{ "buttons", 0.105, 0.835, 0.895, 0.975 },
-	{ "logo", 0.785, 0.02, 0.985, 0.11 },
 }
 local ROBLOX_MENU = { 0, 0, 0.16, 0.12 } -- Roblox's own top-left buttons at a typical Studio window
 
@@ -138,7 +144,7 @@ local function stallLabels(cf, entries)
 		local gremlin = Catalog.get(entry[1])
 		assert(gremlin, "unknown gremlin " .. entry[1])
 		local top = pedestalTop(cf, index).Position
-		local y = topHeight(gremlin) + F.LABEL_GAP + F.LABEL_HEIGHT / 2 + F.labelLift(index)
+		local y = stallTopHeight(gremlin) + F.LABEL_GAP + F.LABEL_HEIGHT / 2 + F.labelLift(index)
 		table.insert(labels, { name = gremlin.name, centre = top + Vector3.new(0, y, 0), w = F.LABEL_WIDTH, h = F.LABEL_HEIGHT })
 	end
 	return labels

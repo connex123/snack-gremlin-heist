@@ -8,6 +8,7 @@ export type Mutation = {
 	material: Enum.Material,
 	weight: number,
 	particle: Color3,
+	effect: string?, -- particle style: nil sparkle, "haze" drifting dust, "lace" shimmering pattern + sparkles
 }
 
 Mutations.list = {
@@ -16,6 +17,8 @@ Mutations.list = {
 	{ name = "Diamond", multiplier = 3, color = Color3.fromRGB(150, 235, 255), material = Enum.Material.Glass, weight = 20, particle = Color3.fromRGB(210, 250, 255) },
 	{ name = "Lagoon", multiplier = 3.5, color = Color3.fromRGB(20, 200, 190), material = Enum.Material.Glass, weight = 16, particle = Color3.fromRGB(120, 255, 240) },
 	{ name = "Neon", multiplier = 4, color = Color3.fromRGB(255, 60, 200), material = Enum.Material.Neon, weight = 10, particle = Color3.fromRGB(255, 120, 230) },
+	{ name = "Harmattan", multiplier = 4.5, color = Color3.fromRGB(226, 180, 98), material = Enum.Material.Sand, weight = 8, particle = Color3.fromRGB(255, 214, 140), effect = "haze" },
+	{ name = "Owambe Lace", multiplier = 5, color = Color3.fromRGB(196, 120, 255), material = Enum.Material.Fabric, weight = 6, particle = Color3.fromRGB(255, 225, 120), effect = "lace" },
 	{ name = "Rainbow", multiplier = 6, color = Color3.fromRGB(255, 120, 60), material = Enum.Material.Neon, weight = 4, particle = Color3.fromRGB(255, 255, 255) },
 } :: { Mutation }
 

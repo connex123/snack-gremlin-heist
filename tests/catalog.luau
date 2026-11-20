@@ -43,7 +43,22 @@ check(Format.money(48650000) == "$48.6M", "48.65M: " .. Format.money(48650000))
 check(Format.perSecond(2500) == "+$2.5K/s", "rate: " .. Format.perSecond(2500))
 check(Format.money(999) == "$999", "999: " .. Format.money(999))
 
-check(Catalog.count() >= 40, "at least 40 gremlins, got " .. Catalog.count())
+check(Catalog.count() >= 64, "at least 64 gremlins, got " .. Catalog.count())
+-- every body recipe distinct: no two gremlins share shape + hat + extra, or body + accent colours
+local recipes, colours = {}, {}
+for _, g in Catalog.list do
+	local r = g.recipe
+	local key = r.shape .. "|" .. r.hat .. "|" .. tostring(r.extra)
+	check(not recipes[key], "recipe " .. key .. " shared by " .. g.name .. " and " .. tostring(recipes[key]))
+	recipes[key] = g.name
+	local c = r.body:ToHex() .. r.accent:ToHex()
+	check(not colours[c], "colours shared by " .. g.name)
+	colours[c] = g.name
+end
+-- more of the cast at the top: each tier from Legendary up has at least 6
+for _, name in { "Legendary", "Mythic", "Divine", "Secret" } do
+	check(#Catalog.byRarity[name] >= 6, name .. " has 6+ gremlins")
+end
 local seen = {}
 for _, g in Catalog.list do
 	check(not seen[g.id], "unique id " .. g.id)
@@ -64,7 +79,7 @@ for _, r in Rarities.list do
 	check(min > prevMin, r.name .. " cheapest above previous tier")
 	prevMin = min
 end
-check(#Mutations.list >= 6, "6+ mutations")
+check(#Mutations.list == 8, "8 mutations")
 check(Rarities.rollRarity(0, 0) == "Common", "roll 0 is Common")
 check(Rarities.rollRarity(0.99999, 0) == "Secret", "roll ~1 is Secret")
 check(Mutations.rollMutation(0.5, 0.5, 1) == nil, "no mutation on high roll")

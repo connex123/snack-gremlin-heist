@@ -66,9 +66,15 @@ function Stalls.renderPedestal(plot, index: number)
 		return
 	end
 	local gremlin = GremlinCatalog.get(slot.id)
-	local model = GremlinModel.build(slot.id, slot.mutation, plot.pedestalTops[index], plot.owner ~= nil)
+	local model = GremlinModel.build(slot.id, slot.mutation, plot.pedestalTops[index], plot.owner ~= nil, plot.owner ~= nil)
 	if not model or not gremlin then
 		return
+	end
+	if plot.owner ~= nil then
+		local ok, err = pcall(GremlinModel.addAura, model, gremlin.rarity, slot.mutation)
+		if not ok then
+			warn("[Stalls] aura failed: " .. tostring(err))
+		end
 	end
 	local income = gremlin.income * Mutations.multiplierOf(slot.mutation) * Stalls.incomeMultiplierOf(plot)
 	GremlinModel.attachLabel(model, gremlin, slot.mutation, income, nil, ShotFraming.labelLift(index))
