@@ -77,12 +77,12 @@ end
 
 -- HUD rectangles in screen scale (x0, y0, x1, y1), kept in sync with Hud/Buttons by hand.
 local HUD = {
-	{ "feature strip", 0.17, 0, 0.83, 0.042 },
-	{ "event banner", 0.27, 0.048, 0.73, 0.153 },
-	{ "logo", 0.8, 0.048, 0.99, 0.12 },
+	{ "feature strip", 0.17, 0, 0.83, 0.08 },
+	{ "event banner", 0.27, 0.088, 0.73, 0.193 },
+	{ "logo", 0.8, 0.082, 0.99, 0.152 },
 	{ "cash", 0.012, 0.13, 0.232, 0.31 },
 	{ "carry card", 0.012, 0.325, 0.232, 0.455 },
-	{ "orders", 0.8, 0.135, 0.99, 0.375 },
+	{ "orders", 0.8, 0.152, 0.99, 0.38 },
 	{ "buttons", 0.105, 0.835, 0.895, 0.975 },
 }
 local ROBLOX_MENU = { 0, 0, 0.16, 0.12 } -- Roblox's own top-left buttons at a typical Studio window
@@ -96,7 +96,7 @@ do
 	local all = table.clone(HUD)
 	table.insert(all, { "upgrades panel", 0.02, 0.385, 0.38, 0.825 })
 	table.insert(all, { "index panel", 0.6, 0.385, 0.98, 0.825 })
-	table.insert(all, { "surge banner", 0.27, 0.165, 0.73, 0.265 })
+	table.insert(all, { "surge banner", 0.27, 0.2, 0.73, 0.3 })
 	for i = 1, #all do
 		for j = i + 1, #all do
 			local a, b = all[i], all[j]
@@ -250,7 +250,7 @@ for _, size in { { 768, 480 }, { 1920, 1080 } } do
 		end
 		check(bdepth < 90, "threat: the boss is too far away to read")
 		-- his name tag and hat stay clear of the boss / surge banners (top centre)
-		local banners = { { 0.27 * w, 0.048 * h, 0.73 * w, 0.153 * h }, { 0.27 * w, 0.165 * h, 0.73 * w, 0.265 * h } }
+		local banners = { { 0.27 * w, 0.088 * h, 0.73 * w, 0.193 * h }, { 0.27 * w, 0.2 * h, 0.73 * w, 0.3 * h } }
 		for _, part in { { "apron sign", 5.6 }, { "face", 11 }, { "hat top", 22 } } do
 			local px, py = project(cam, F.THREAT_FOV, w, h, F.THREAT_BOSS + Vector3.new(x, part[2], 0))
 			for _, r in banners do

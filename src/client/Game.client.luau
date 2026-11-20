@@ -5,8 +5,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
 
-pcall(function()
-	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
+task.spawn(function()
+	for _ = 1, 5 do -- retried in case CoreGui is not up yet on a slow first load
+		if pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, false) then
+			return
+		end
+		task.wait(0.5)
+	end
 end)
 
 -- Runs one setup step; a failure is logged and the rest of the client (and the shot keys) still start.

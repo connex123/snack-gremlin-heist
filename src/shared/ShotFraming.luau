@@ -25,7 +25,7 @@ end
 -- Cover (key 1): the player's full stall from above the lane, looking down into it so both rows of
 -- labels separate on screen (found by a grid search over eye height/distance in tests/shots.luau terms).
 ShotFraming.COVER_EYE = Vector3.new(-1, 34, -21)
-ShotFraming.COVER_TARGET = Vector3.new(0, 9, 5)
+ShotFraming.COVER_TARGET = Vector3.new(0, 10.5, 5)
 ShotFraming.COVER_STAND = Vector3.new(-17.5, 4.6, -5) -- right of pedestal 1, under its label, above the buttons
 ShotFraming.COVER_FOV = 65
 -- The cover stall: pedestals 1-5 front, 6-10 back; mixed rarities, glowing mutations, a Divine and a Secret.

@@ -63,6 +63,24 @@ function FeatureList.build(events: number?, started: { [string]: boolean }?): st
 	return table.concat(parts, FeatureList.SEPARATOR)
 end
 
+-- Splits the strip text into two lines at the separator that keeps the longer line shortest, so
+-- both centred lines are drawn at the same, larger text size.
+function FeatureList.twoLines(text: string): (string, string)
+	local parts = string.split(text, FeatureList.SEPARATOR)
+	if #parts < 2 then
+		return text, ""
+	end
+	local best, bestLen = 1, math.huge
+	for k = 1, #parts - 1 do
+		local a = #table.concat(parts, FeatureList.SEPARATOR, 1, k)
+		local b = #table.concat(parts, FeatureList.SEPARATOR, k + 1, #parts)
+		if math.max(a, b) < bestLen then
+			best, bestLen = k, math.max(a, b)
+		end
+	end
+	return table.concat(parts, FeatureList.SEPARATOR, 1, best), table.concat(parts, FeatureList.SEPARATOR, best + 1, #parts)
+end
+
 FeatureList.count = count
 
 return FeatureList

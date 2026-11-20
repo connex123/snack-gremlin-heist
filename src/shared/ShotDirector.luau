@@ -17,9 +17,20 @@ local SHOT_KEYS = {
 	[Enum.KeyCode.Four] = "progress",
 }
 
+-- Never throws or yields the caller: retries a few times in its own thread in case CoreGui is not up yet.
+local coreGuiWanted: { [Enum.CoreGuiType]: boolean } = {}
 local function setCoreGui(kind: Enum.CoreGuiType, enabled: boolean)
-	pcall(function()
-		StarterGui:SetCoreGuiEnabled(kind, enabled)
+	coreGuiWanted[kind] = enabled
+	task.spawn(function()
+		for _ = 1, 5 do
+			if coreGuiWanted[kind] ~= enabled then
+				return -- a later call owns this setting now
+			end
+			if pcall(StarterGui.SetCoreGuiEnabled, StarterGui, kind, enabled) then
+				return
+			end
+			task.wait(0.5)
+		end
 	end)
 end
 
