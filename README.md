@@ -36,6 +36,18 @@ Screenshots in Roblox Studio: press Play, then **1** cover, **2** buy moment, **
 **4** progression panels, **0** back to normal play. The shot director (`ReplicatedStorage.Shared.ShotDirector`
 and `ServerScriptService.ShotDirectorServer`) only runs in Studio; TOUR.json lists the keys per screenshot.
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Cover: Jollof Rain over a full stall, orders panel](screenshots/1-cover.jpg) | ![Buy: carrying a Danfo Dragon home](screenshots/2-buy.jpg) |
+| ![Threat: Oga Pepperpot raid, Lagoon Surge, a locked-out Pocket Pirate](screenshots/3-threat.jpg) | ![Progress: Upgrades and Gremlin Index](screenshots/4-progress.jpg) |
+
+These were captured by the owner in Roblox Studio from the published place, using the in-game shot keys
+(1 to 4) described above. `python3 -I tools/shots.py <captures-dir> .` crops each capture to 16:9 and scales
+it to 1280x720 JPEG (at most 250 KiB). It also writes `branding/icon-512.png`, the experience icon cropped
+from the cover.
+
 Layout: `src/shared` (cast, rarities, mutations, config, remotes) → ReplicatedStorage.Shared, `src/server`
 (one module per system; all player state in PlayerState) → ServerScriptService.Server, `src/client` (HUD) →
 StarterPlayerScripts.Client. Pure-logic tests (cast, mutations, orders, fuse rules, feature strip): `lune run tests/catalog.luau`; screenshot framing (cameras, label overlap, HUD clearance at 768x480, boss placement): `lune run tests/shots.luau`; built place (every script at its path, bootstrap classes, CharacterAutoLoads): `lune run tests/place.luau` after the build. Owner steps for the screenshots: SHOTS.md.
