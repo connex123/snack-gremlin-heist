@@ -36,6 +36,11 @@ local function onPlayerAdded(player: Player)
 	PlayerState.create(player)
 	Stalls.claimStall(player)
 	MarketEvents.syncPlayer(player)
+	task.delay(3, function()
+		if player.Parent then
+			Remotes.get("Toast"):FireClient(player, "Walk to the Snack Belt and press E to buy a gremlin!", Color3.fromRGB(255, 220, 60))
+		end
+	end)
 	player.CharacterAdded:Connect(function(character)
 		onCharacterAdded(player, character)
 	end)

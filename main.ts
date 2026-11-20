@@ -1,7 +1,7 @@
 // Snack Gremlin Heist: hands the game in (Node 22, standard library only). The game is this directory's Rojo
 // project, built into game.rbxl with `rojo build default.project.json --output game.rbxl`. The starter place
-// is already published on Roblox and named in PLAY.json; the game itself is still the starter's grey square
-// that moves with the arrow keys, to be replaced as the heist gets built. This program copies game.rbxl, src/,
+// is published on Roblox and named in PLAY.json; the game is a 3D night-market brainrot game whose world is
+// built from Parts by its server scripts. This program copies game.rbxl, src/,
 // screenshots/ and PLAY.json from beside this file to /output and writes /output/dossier.json, the summary the
 // judge reads, with the vendored make.fun library. Screenshots (PNG or JPEG) go in screenshots/: the first by
 // name is the cover, and one of them is the thumbnail uploaded for the game on Roblox.
