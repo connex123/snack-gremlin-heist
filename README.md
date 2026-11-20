@@ -44,8 +44,8 @@ and `ServerScriptService.ShotDirectorServer`) only runs in Studio; TOUR.json lis
 | ![Threat: Oga Pepperpot raid, Lagoon Surge, a locked-out Pocket Pirate](screenshots/3-threat.jpg) | ![Progress: Upgrades and Gremlin Index](screenshots/4-progress.jpg) |
 
 These were captured by the owner in Roblox Studio from the published place, using the in-game shot keys
-(1 to 4) described above. `python3 -I tools/shots.py <captures-dir> .` crops each capture to 16:9 and scales
-it to 1280x720 JPEG (at most 250 KiB). It also writes `branding/icon-512.png`, the experience icon cropped
+(1 to 4) described above. `python3 -I tools/shots.py <captures-dir> .` resizes each whole capture (no crop)
+it to 1280x720 JPEG (at most 250,000 bytes). It also writes `branding/icon-512.png`, the experience icon cropped
 from the cover.
 
 Layout: `src/shared` (cast, rarities, mutations, config, remotes) → ReplicatedStorage.Shared, `src/server`
