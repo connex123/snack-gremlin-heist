@@ -76,6 +76,7 @@ function ShotDirector.applyShot(payload, panels)
 	for _, name in payload.panels or {} do
 		pcall(panels.open, name)
 	end
+	pcall(panels.hideHud, payload.hide or {})
 	camera.CameraType = Enum.CameraType.Scriptable
 	camera.FieldOfView = payload.fov or 70
 	-- hold the frame for a few renders in case the camera module was mid-update
@@ -97,6 +98,7 @@ function ShotDirector.resetCamera(panels)
 		end
 	end
 	pcall(panels.closeAll)
+	pcall(panels.hideHud, {})
 	pcall(panels.setShotMode, false)
 	setCoreGui(Enum.CoreGuiType.PlayerList, true)
 	setCoreGui(Enum.CoreGuiType.Chat, true)

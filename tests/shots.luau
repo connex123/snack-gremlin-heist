@@ -212,7 +212,44 @@ for _, size in { { 768, 480 }, { 1920, 1080 } } do
 		{ name = "own shutter right", point = cf1:PointToWorldSpace(Vector3.new(18, fh + 5, -13.6)), mustSee = false },
 		{ name = "wave crest above pirate", point = Vector3.new(x, 27, F.THREAT_WAVE_Z), mustSee = true },
 		{ name = "wave crest x+60", point = Vector3.new(x + 60, 27, F.THREAT_WAVE_Z), mustSee = true },
+		{ name = "boss hat top", point = F.THREAT_BOSS + Vector3.new(x, 22, 0), mustSee = true },
+		{ name = "boss feet", point = F.THREAT_BOSS + Vector3.new(x, 0, 0), mustSee = true },
+		{ name = "boss apron sign", point = F.THREAT_BOSS + Vector3.new(x, 5.6, 0), mustSee = true },
 	}, w, h, minPx)
+	-- the boss (about 13 studs wide, 22 tall) must not stand in front of the shot's other subjects
+	do
+		local bx, by, bdepth = project(cam, F.THREAT_FOV, w, h, F.THREAT_BOSS + Vector3.new(x, 11, 0))
+		local s = pxPerStud(F.THREAT_FOV, h, bdepth)
+		local box = { bx - 7 * s, by - 11 * s, bx + 7 * s, by + 11 * s }
+		for _, subject in {
+			{ "shutter pirate head", F.THREAT_PIRATE + Vector3.new(x, 6.5, 0) },
+			{ "shutter pirate label", F.THREAT_PIRATE + Vector3.new(x, 9.5, 0) },
+			{ "player head", F.THREAT_PLAYER + Vector3.new(x, 2.5, 0) },
+			{ "own shutter centre", cf1:PointToWorldSpace(Vector3.new(0, fh + 5, -13.6)) },
+			{ "rival-stall pirate head", Vector3.new(pirateSpot.X, fh + 6.5, pirateSpot.Z) },
+		} do
+			local px, py, pdepth = project(cam, F.THREAT_FOV, w, h, subject[2])
+			local inside = px and px > box[1] and px < box[3] and py > box[2] and py < box[4]
+			check(not (inside and bdepth < pdepth + 6), "threat: the boss hides the " .. subject[1])
+		end
+		check(bdepth < 90, "threat: the boss is too far away to read")
+		-- his name tag and hat stay clear of the boss / surge banners (top centre)
+		local banners = { { 0.27 * w, 0.048 * h, 0.73 * w, 0.153 * h }, { 0.27 * w, 0.165 * h, 0.73 * w, 0.265 * h } }
+		for _, part in { { "apron sign", 5.6 }, { "face", 11 }, { "hat top", 22 } } do
+			local px, py = project(cam, F.THREAT_FOV, w, h, F.THREAT_BOSS + Vector3.new(x, part[2], 0))
+			for _, r in banners do
+				check(not (px and px > r[1] and px < r[3] and py > r[2] and py < r[4]), "threat: boss " .. part[1] .. " under a banner")
+			end
+			check(px ~= nil and py > 0.05 * h, "threat: boss " .. part[1] .. " off the top")
+			-- the threat shot hides the cash panel (payload.hide); every other panel still counts
+			for _, hud in HUD do
+				if hud[1] ~= "cash" and hud[1] ~= "event banner" and hud[1] ~= "carry card" then -- no carry in this shot
+					check(not (px > hud[2] * w and px < hud[4] * w and py > hud[3] * h and py < hud[5] * h), "threat: boss " .. part[1] .. " under HUD " .. hud[1])
+				end
+			end
+			check(not (px < ROBLOX_MENU[3] * w and py < ROBLOX_MENU[4] * h), "threat: boss " .. part[1] .. " under Roblox's menu")
+		end
+	end
 	-- 4 progress (panels cover the sides, so only the middle must be clear)
 	cam = CFrame.lookAt(cf1:PointToWorldSpace(F.PROGRESS_EYE), cf1:PointToWorldSpace(F.PROGRESS_TARGET))
 	runShot("progress", cam, F.PROGRESS_FOV, {}, {

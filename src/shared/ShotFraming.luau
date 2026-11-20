@@ -52,7 +52,7 @@ ShotFraming.THREAT_PIRATE = Vector3.new(4, 0, 22) -- feet, in front of the shutt
 ShotFraming.THREAT_PLAYER = Vector3.new(-7, 3, 18)
 ShotFraming.THREAT_WAVE_Z = -84
 ShotFraming.THREAT_FOV = 70
-ShotFraming.THREAT_BOSS = Vector3.new(-14, 0, 40) -- Oga Pepperpot's feet, behind the player on the lane
+ShotFraming.THREAT_BOSS = Vector3.new(-18, 0, -20) -- Oga Pepperpot's feet: marching down the far lane, left of the player
 
 -- Progress (key 4): straight on to the stall, panels over the sides.
 ShotFraming.PROGRESS_EYE = Vector3.new(0, 14, -30)

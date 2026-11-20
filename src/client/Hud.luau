@@ -38,7 +38,7 @@ function Hud.create(): ScreenGui
 	rateLabel = UiKit.text(cash, "Rate", "+$0/s", UDim2.fromScale(0.05, 0.52), UDim2.fromScale(0.9, 0.28), UiKit.GREEN)
 	infoLabel = UiKit.text(cash, "Info", "", UDim2.fromScale(0.05, 0.8), UDim2.fromScale(0.9, 0.17), Color3.new(1, 1, 1))
 
-	for slotName, y in { event = 0.048, surge = 0.165 } do -- under the feature strip
+	for slotName, y in { event = 0.048, boss = 0.048, surge = 0.165 } do -- under the feature strip
 		local frame = UiKit.panel(gui, slotName .. "Banner", UDim2.fromScale(0.5, y), UDim2.fromScale(0.46, slotName == "event" and 0.105 or 0.1), UiKit.CORAL, 0.05)
 		frame.AnchorPoint = Vector2.new(0.5, 0)
 		frame.Visible = false
@@ -98,6 +98,13 @@ function Hud.showBanner(payload)
 		return
 	end
 	banner.frame.Visible = true
+	-- the boss raid banner takes the top slot while it is up
+	local boss = banners.boss
+	if payload.slot == "event" and boss and boss.frame.Visible then
+		banner.frame.Visible = false
+	elseif payload.slot == "boss" and banners.event then
+		banners.event.frame.Visible = false
+	end
 	banner.frame.BackgroundColor3 = payload.color or UiKit.CORAL
 	banner.title.Text = payload.title or ""
 	banner.sub.Text = payload.sub or ""

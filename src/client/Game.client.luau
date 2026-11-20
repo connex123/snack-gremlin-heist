@@ -83,13 +83,25 @@ local panels = {
 		call(UpgradePanel, "UpgradePanel.close", "setOpen", false)
 		call(IndexPanel, "IndexPanel.close", "setOpen", false)
 	end,
+	-- hides the named HUD frames (and shows every other one that was hidden before)
+	hideHud = function(names: { string })
+		if not gui then
+			return
+		end
+		for _, name in { "CashPanel", "FeatureStrip" } do
+			local frame = gui:FindFirstChild(name)
+			if frame and frame:IsA("GuiObject") then
+				frame.Visible = not table.find(names, name)
+			end
+		end
+	end,
 	setShotMode = function(on: boolean)
 		call(Toasts, "Toasts.setVisible", "setVisible", not on)
 	end,
 }
 
 -- The shot keys first: nothing below can stop them.
-call(ShotDirector, "ShotDirector", "start", panels)
+task.spawn(call, ShotDirector, "ShotDirector", "start", panels)
 
 call(Toasts, "Toasts", "create", gui)
 call(EffectsClient, "EffectsClient", "create", gui)

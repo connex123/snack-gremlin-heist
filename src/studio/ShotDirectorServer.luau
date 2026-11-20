@@ -208,9 +208,11 @@ function ShotDirectorServer.stageThreat(player: Player, plot)
 	local payload = {
 		camera = CFrame.lookAt(ShotFraming.THREAT_EYE + Vector3.new(x, 0, 0), ShotFraming.THREAT_TARGET + Vector3.new(x, 0, 0)),
 		fov = ShotFraming.THREAT_FOV,
+		hide = { "CashPanel" }, -- the boss's chef hat stands where the cash panel sits
 		expect = { stand = stand },
 	}
 	prepare()
+	try("stop event", MarketEvents.stopEvent) -- the top banner belongs to the boss raid in this shot
 	try("rich stall", ShotDirectorServer.stageRichStall, player, plot)
 	try("lock shutter", function()
 		local state = PlayerState.get(player)
@@ -235,7 +237,7 @@ function ShotDirectorServer.stageThreat(player: Player, plot)
 	end)
 	try("locked-out pirate", PocketPirates.stageLockedOut, plot, ShotFraming.THREAT_PIRATE + Vector3.new(x, 0, 0))
 	try("surge wave", LagoonSurge.stageFrozenWave, ShotFraming.THREAT_WAVE_Z, 9)
-	try("Oga Pepperpot", OgaPepperpot.stageFrozen, ShotFraming.THREAT_BOSS + Vector3.new(x, 0, 0), stand)
+	try("Oga Pepperpot", OgaPepperpot.stageFrozen, ShotFraming.THREAT_BOSS + Vector3.new(x, 0, 0), ShotFraming.THREAT_EYE + Vector3.new(x, 0, 0))
 	local pirate = ShotFraming.THREAT_PIRATE + Vector3.new(x, stand.Y, 0)
 	try("place character", placeCharacter, player, CFrame.lookAt(stand, pirate))
 	payload.expect = expectation(plot, stand)
