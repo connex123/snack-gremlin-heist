@@ -24,6 +24,7 @@ function Rebirth.tryRebirth(player: Player): boolean
 	end
 	Carrying.drop(player, nil)
 	state.rebirths += 1
+	PlayerState.recordProgress(player, "rebirth", 1)
 	state.cash = Config.STARTING_CASH
 	PlayerState.markDirty(player)
 	local plot = Stalls.plotOf(player)

@@ -93,6 +93,7 @@ function Carrying.deliverIfHome(player: Player)
 	end
 	PlayerState.markDirty(player)
 	local gremlin = GremlinCatalog.get(carry.id)
+	PlayerState.recordProgress(player, "place", 1, gremlin and gremlin.rarity)
 	Remotes.get("Effect"):FireClient(player, "place", Stalls.pedestalPosition(plot, index) + Vector3.new(0, 3, 0))
 	Remotes.get("Toast"):FireClient(player, (gremlin and gremlin.name or "Gremlin") .. " is earning on pedestal " .. index .. "!", Color3.fromRGB(90, 255, 120))
 end

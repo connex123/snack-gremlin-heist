@@ -101,13 +101,14 @@ for _, player in Players:GetPlayers() do
 end
 
 -- Starts module.start() (or another function) if the module loaded; failures are named and skipped.
+local started: { [string]: boolean } = {}
 local function startSystem(name: string, module: any, fnName: string?)
 	local fn = module and module[fnName or "start"]
 	if typeof(fn) ~= "function" then
 		warn("[SnackGremlinHeist] " .. name .. " not started (module unavailable)")
 		return
 	end
-	guarded(name, fn)
+	started[name] = guarded(name, fn)
 end
 
 startSystem("PlayerState.snapshots", PlayerState, "startSnapshotPump")
@@ -123,6 +124,23 @@ startSystem("MarketEvents", MarketEvents)
 startSystem("RivalStalls", RivalStalls)
 startSystem("MarketOrders", MarketOrders)
 startSystem("OgaPepperpot", OgaPepperpot)
+if MarketOrders and started.OgaPepperpot then
+	MarketOrders.bossEnabled = true
+end
+-- The HUD's feature strip: counts from the real tables, systems that really started.
+guarded("FeatureStrip", function()
+	local FeatureList = require(ReplicatedStorage:WaitForChild("Shared", 30):WaitForChild("FeatureList", 10))
+	local events = 0
+	if MarketEvents and MarketEvents.EVENTS and started.MarketEvents then
+		events += FeatureList.count(MarketEvents.EVENTS)
+	end
+	for _, threat in { "LagoonSurge", "OgaPepperpot" } do
+		if started[threat] then
+			events += 1 -- the timed threats are market events too
+		end
+	end
+	ReplicatedStorage:SetAttribute(FeatureList.ATTRIBUTE, FeatureList.build(events, started))
+end)
 -- Studio-only screenshot staging lives beside this folder.
 local shotDirector = script.Parent:FindFirstChild("ShotDirectorServer")
 if shotDirector then

@@ -9,6 +9,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared", 30)
 local Config = require(Shared.Config)
 local Remotes = require(Shared.Remotes)
 local Carrying = require(script.Parent.Carrying)
+local PlayerState = require(script.Parent.PlayerState)
 local Stalls = require(script.Parent.Stalls)
 local WaveModel = require(script.Parent.World.WaveModel)
 
@@ -102,6 +103,11 @@ function LagoonSurge.sweepWave()
 		wave = nil
 	end
 	Remotes.get("Banner"):FireAllClients({ slot = "surge", clear = true })
+	for _, player in Players:GetPlayers() do
+		if not hit[player] then
+			PlayerState.recordProgress(player, "surge", 1)
+		end
+	end
 	surging = false
 end
 

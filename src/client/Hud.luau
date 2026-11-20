@@ -38,8 +38,8 @@ function Hud.create(): ScreenGui
 	rateLabel = UiKit.text(cash, "Rate", "+$0/s", UDim2.fromScale(0.05, 0.52), UDim2.fromScale(0.9, 0.28), UiKit.GREEN)
 	infoLabel = UiKit.text(cash, "Info", "", UDim2.fromScale(0.05, 0.8), UDim2.fromScale(0.9, 0.17), Color3.new(1, 1, 1))
 
-	for slotName, y in { event = 0.012, surge = 0.135 } do
-		local frame = UiKit.panel(gui, slotName .. "Banner", UDim2.fromScale(0.5, y), UDim2.fromScale(0.52, slotName == "event" and 0.115 or 0.1), UiKit.CORAL, 0.05)
+	for slotName, y in { event = 0.048, surge = 0.165 } do -- under the feature strip
+		local frame = UiKit.panel(gui, slotName .. "Banner", UDim2.fromScale(0.5, y), UDim2.fromScale(0.46, slotName == "event" and 0.105 or 0.1), UiKit.CORAL, 0.05)
 		frame.AnchorPoint = Vector2.new(0.5, 0)
 		frame.Visible = false
 		UiKit.stroke(frame, Color3.new(1, 1, 1), 4)
@@ -49,7 +49,7 @@ function Hud.create(): ScreenGui
 	end
 
 	-- game title, top right (Roblox's own menu sits top left)
-	local logo = UiKit.text(gui, "Logo", "SNACK GREMLIN HEIST", UDim2.fromScale(0.985, 0.02), UDim2.fromScale(0.2, 0.09), UiKit.YELLOW)
+	local logo = UiKit.text(gui, "Logo", "SNACK GREMLIN HEIST", UDim2.fromScale(0.985, 0.05), UDim2.fromScale(0.185, 0.07), UiKit.YELLOW)
 	logo.AnchorPoint = Vector2.new(1, 0)
 	logo.Rotation = 3
 	local logoStroke = logo:FindFirstChildOfClass("UIStroke")

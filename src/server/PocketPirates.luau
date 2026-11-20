@@ -167,6 +167,7 @@ function PocketPirates.whack(player: Player): boolean
 	local state = PlayerState.get(player)
 	local bounty = math.max(50, (state and state.rate or 0) * Config.WHACK_BOUNTY_SECONDS)
 	PlayerState.addCash(player, bounty)
+	PlayerState.recordProgress(player, "whack", 1)
 	Remotes.get("Effect"):FireAllClients("whack", raid.model:GetPivot().Position + Vector3.new(0, 4, 0))
 	Remotes.get("Toast"):FireClient(player, "WHACK! Pirate sent flying. Bounty +$" .. math.floor(bounty), Color3.fromRGB(90, 255, 120))
 	PirateModel.flyAway(raid.model, function()

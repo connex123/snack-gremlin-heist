@@ -22,6 +22,7 @@ export type State = {
 	lockUntil: number,
 	lockCooldownUntil: number,
 	plotIndex: number?,
+	orders: { any },
 	leaderCash: StringValue?,
 	leaderRebirths: IntValue?,
 	dirty: boolean,
@@ -42,6 +43,7 @@ function PlayerState.create(player: Player): State
 		lockUntil = 0,
 		lockCooldownUntil = 0,
 		plotIndex = nil,
+		orders = {},
 		leaderCash = nil,
 		leaderRebirths = nil,
 		dirty = true,
@@ -116,6 +118,24 @@ function PlayerState.discover(player: Player, gremlinId: string)
 	end
 end
 
+-- Progress events ("buy", "place", "whack", "surge", "rebirth", "boss") for listeners such as
+-- MarketOrders. Systems only call recordProgress; each listener runs in its own pcall, so a broken
+-- listener can never break the system that reported the progress.
+local progressListeners: { (Player, string, number, any) -> () } = {}
+
+function PlayerState.onProgress(listener: (Player, string, number, any) -> ())
+	table.insert(progressListeners, listener)
+end
+
+function PlayerState.recordProgress(player: Player, kind: string, amount: number?, detail: any?)
+	for _, listener in progressListeners do
+		local ok, err = pcall(listener, player, kind, amount or 1, detail)
+		if not ok then
+			warn("[PlayerState] progress listener failed on " .. kind .. ": " .. tostring(err))
+		end
+	end
+end
+
 -- The HUD's view of the state: plain values only.
 function PlayerState.buildSnapshot(state: State)
 	local carrying = nil
@@ -143,6 +163,7 @@ function PlayerState.buildSnapshot(state: State)
 		discovered = discovered,
 		lockUntil = state.lockUntil,
 		lockCooldownUntil = state.lockCooldownUntil,
+		orders = state.orders,
 	}
 end
 

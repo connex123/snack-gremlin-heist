@@ -70,10 +70,14 @@ end
 for _, path in {
 	"ServerScriptService.Server",
 	"ServerScriptService.ShotDirectorServer",
+	"ServerScriptService.Server.MarketOrders",
 	"ReplicatedStorage.Shared.ShotDirector",
 	"ReplicatedStorage.Shared.ShotFraming",
 	"ReplicatedStorage.Shared.Remotes",
+	"ReplicatedStorage.Shared.FeatureList",
 	"StarterPlayer.StarterPlayerScripts.Client.Game",
+	"StarterPlayer.StarterPlayerScripts.Client.FeatureStrip",
+	"StarterPlayer.StarterPlayerScripts.Client.OrdersPanel",
 } do
 	check(find(path) ~= nil, "must-have missing: " .. path)
 end

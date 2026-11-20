@@ -104,6 +104,7 @@ function SnackBelt.tryBuy(player: Player, item: BeltItem): boolean
 		item.model:Destroy()
 		return false
 	end
+	PlayerState.recordProgress(player, "buy", 1)
 	return true
 end
 

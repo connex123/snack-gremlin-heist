@@ -99,4 +99,24 @@ for _, r in Rarities.list do
 	end
 	print(r.name .. ": " .. table.concat(names, ", "))
 end
+-- feature strip: counts come from the tables, systems only when started
+local FeatureList = load("FeatureList")
+local strip = FeatureList.build(5, { LagoonSurge = true, Rebirth = true })
+check(strip:find(Catalog.count() .. " GREMLINS", 1, true) ~= nil, "strip gremlin count: " .. strip)
+check(strip:find(#Mutations.list .. " MUTATIONS", 1, true) ~= nil, "strip mutation count")
+check(strip:find("5 EVENTS", 1, true) ~= nil and strip:find("SURGE", 1, true) ~= nil, "strip events and surge")
+check(strip:find("BOSS", 1, true) == nil, "strip leaves out systems that did not start")
+-- market orders
+local OrderBook = load("OrderBook")
+local buy = OrderBook.make(OrderBook.template("buy"), 100, 0.99)
+check(buy.goal == 4 and buy.rewardCash == 100 * 40 * 4, "buy order goal and reward")
+check(not OrderBook.apply(buy, "whack", 1), "other kinds do not count")
+OrderBook.apply(buy, "buy", 3)
+check(buy.progress == 3 and not buy.done, "buy progress")
+check(OrderBook.apply(buy, "buy", 1) and buy.done, "buy completes")
+local rare = OrderBook.make(OrderBook.template("placeRare"), 0, 0)
+check(not OrderBook.apply(rare, "place", 1, "Uncommon"), "Uncommon is not Rare+")
+check(OrderBook.apply(rare, "place", 1, "Epic") and rare.reward == "Epic gremlin", "Epic counts for Rare+")
+check(#OrderBook.candidates({}, false) == #OrderBook.TEMPLATES - 1, "boss order only with the boss")
+print("strip: " .. FeatureList.build(4, { LagoonSurge = true, PocketPirates = true, OgaPepperpot = true, ShutterLock = true, MarketOrders = true, Rebirth = true }))
 print(failures == 0 and "ALL CHECKS PASSED" or (failures .. " FAILURES"))
