@@ -1,6 +1,7 @@
 -- EffectsClient: floating "+$X" coins over earning pedestals, particle bursts for buys, placements,
 -- whacks and splashes, a screen flash for upgrades/rebirths, and rainbow colour cycling.
 local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
@@ -32,8 +33,8 @@ end
 
 local function worldAttachment(position: Vector3): Attachment
 	local attachment = Instance.new("Attachment")
-	attachment.WorldPosition = position
 	attachment.Parent = Workspace.Terrain
+	attachment.WorldPosition = position
 	return attachment
 end
 
@@ -63,6 +64,9 @@ function EffectsClient.burst(kind: string, position: Vector3)
 		TweenService:Create(flash, TweenInfo.new(0.6), { BackgroundTransparency = 1 }):Play()
 		return
 	end
+	if kind == "splash" then
+		EffectsClient.knockback()
+	end
 	local attachment = worldAttachment(position)
 	local emitter = Instance.new("ParticleEmitter")
 	emitter.Color = ColorSequence.new(BURST_COLORS[kind] or Color3.new(1, 1, 1))
@@ -78,6 +82,15 @@ function EffectsClient.burst(kind: string, position: Vector3)
 	task.delay(1.5, function()
 		attachment:Destroy()
 	end)
+end
+
+-- The surge shoves the local character inland (the client owns its character's physics).
+function EffectsClient.knockback()
+	local character = Players.LocalPlayer.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if root then
+		root.AssemblyLinearVelocity = Vector3.new(0, 45, 70)
+	end
 end
 
 -- Rainbow-mutated parts shift hue every frame.

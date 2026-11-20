@@ -125,9 +125,9 @@ function PocketPirates.runRaid(plot)
 		return
 	end
 	PocketPirates.grab(raid, index)
-	if PocketPirates.walkTo(raid, dock, Config.PIRATE_ESCAPE_SPEED) and raid.stolen then
-		local gremlin = GremlinCatalog.get(raid.stolen.id)
-		if plot.owner then
+	if PocketPirates.walkTo(raid, dock, Config.PIRATE_ESCAPE_SPEED) then
+		if raid.stolen and plot.owner then
+			local gremlin = GremlinCatalog.get(raid.stolen.id)
 			Remotes.get("Toast"):FireClient(plot.owner, "A Pocket Pirate sailed off with your " .. (gremlin and gremlin.name or "gremlin") .. "!", Color3.fromRGB(255, 70, 70))
 		end
 		finishRaid(raid)

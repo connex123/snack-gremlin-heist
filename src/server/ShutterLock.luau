@@ -21,7 +21,7 @@ end
 
 function ShutterLock.showShutter(plot, on: boolean, secondsLeft: number?)
 	plot.shutter.Transparency = on and 0.35 or 1
-	plot.shutter.CanCollide = on
+	plot.shutter.CanCollide = false -- visual only: the owner can still walk in and out
 	plot.shutterLabel.Visible = on
 	if on then
 		plot.shutterLabel.Text = "LOCKED " .. math.ceil(secondsLeft or 0) .. "s"
