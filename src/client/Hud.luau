@@ -95,6 +95,12 @@ function Hud.showBanner(payload)
 	end
 	if payload.clear then
 		banner.frame.Visible = false
+		banner.endsAt = 0
+		-- the boss raid is over: bring back a market event banner that is still running
+		local event = banners.event
+		if payload.slot == "boss" and event and event.endsAt > Workspace:GetServerTimeNow() then
+			event.frame.Visible = true
+		end
 		return
 	end
 	banner.frame.Visible = true

@@ -66,6 +66,8 @@ end
 function ShotDirector.applyShot(payload, panels)
 	local camera = Workspace.CurrentCamera
 	if not camera or typeof(payload) ~= "table" or typeof(payload.camera) ~= "CFrame" then
+		busyUntil = 0
+		warn("[ShotDirector] bad shot payload or no camera: press the key again")
 		return
 	end
 	if not waitForStage(payload.expect) then

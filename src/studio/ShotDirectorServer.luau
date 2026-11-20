@@ -60,6 +60,7 @@ local OgaPepperpot = optional(Server, "OgaPepperpot")
 local ShotDirectorServer = {}
 
 local HOLD_SECONDS = 45 -- surge, pirates, events, boss and rival restocks pause this long after a shot key
+local beltToken = 0 -- the latest buy shot's belt pause; only it may unpause the belt
 
 -- Runs one staging step; on failure warns with the shot and step name and carries on.
 local currentShot = "?"
@@ -131,7 +132,9 @@ local function prepare()
 	try("abort surge", LagoonSurge.abort)
 	try("clear wave", LagoonSurge.clearWave)
 	try("clear pirates", PocketPirates.clearAll)
-	try("clear boss", OgaPepperpot.clear)
+	beltToken += 1
+	try("resume belt", SnackBelt.setPaused, false)
+	try("clear boss", OgaPepperpot.clear, true)
 end
 
 -- What the client waits for before framing: the stall's gremlin models and the player at `stand`.
@@ -196,8 +199,12 @@ function ShotDirectorServer.stageBuy(player: Player, plot)
 		end
 	end)
 	showOrders(player)
+	beltToken += 1
+	local token = beltToken
 	task.delay(HOLD_SECONDS, function()
-		pcall(SnackBelt.setPaused, false)
+		if beltToken == token then -- a later buy shot owns the belt now
+			pcall(SnackBelt.setPaused, false)
+		end
 	end)
 	return payload
 end

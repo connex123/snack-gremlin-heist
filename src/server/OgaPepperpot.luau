@@ -26,6 +26,9 @@ OgaPepperpot.WALK_SPEED = 7
 OgaPepperpot.SCOOP_SECONDS = 5 -- he stands at a stall this long before scooping
 OgaPepperpot.LANE_Z = 14 -- the south lane, between the belt and the stall fronts
 OgaPepperpot.TITLE = "OGA PEPPERPOT RAID!"
+OgaPepperpot.FROZEN_SECONDS = 45 -- how long the shot director's staged boss stays
+OgaPepperpot.WHACK_COOLDOWN = 0.25 -- seconds between one player's whacks
+local lastWhack: { [Player]: number } = {}
 
 local RED = Color3.fromRGB(220, 30, 30)
 local WHITE = Color3.new(1, 1, 1)
@@ -38,7 +41,7 @@ type Boss = {
 	hits: number,
 	needed: number,
 	whackers: { [Player]: boolean },
-	scooped: { { plot: any, index: number, slot: any } },
+	scooped: { { plot: any, owner: Player?, index: number, slot: any } },
 	fleeing: boolean,
 }
 
@@ -173,7 +176,9 @@ function OgaPepperpot.clear(returnLoot: boolean?)
 	end
 	if returnLoot then
 		for _, loot in b.scooped do
-			pcall(Stalls.placeGremlin, loot.plot, loot.slot.id, loot.slot.mutation, loot.index)
+			if loot.plot.owner == loot.owner then -- only back to the same owner's stall
+				pcall(Stalls.placeGremlin, loot.plot, loot.slot.id, loot.slot.mutation, loot.index)
+			end
 		end
 	end
 	if b.model then
@@ -187,7 +192,9 @@ function OgaPepperpot.defeat(b: Boss)
 	b.fleeing = true
 	b.status.Text = "DRIVEN OFF!"
 	for _, loot in b.scooped do
-		pcall(Stalls.placeGremlin, loot.plot, loot.slot.id, loot.slot.mutation, loot.index)
+		if loot.plot.owner == loot.owner then
+			pcall(Stalls.placeGremlin, loot.plot, loot.slot.id, loot.slot.mutation, loot.index)
+		end
 	end
 	b.scooped = {}
 	for player in b.whackers do
@@ -233,6 +240,10 @@ function OgaPepperpot.whack(player: Player): boolean
 	if not b or b.fleeing or not root then
 		return false
 	end
+	if os.clock() - (lastWhack[player] or 0) < OgaPepperpot.WHACK_COOLDOWN then
+		return false
+	end
+	lastWhack[player] = os.clock()
 	local flat = (b.root.Position - root.Position) * Vector3.new(1, 0, 1)
 	if flat.Magnitude > OgaPepperpot.WHACK_RANGE then
 		return false
@@ -315,7 +326,7 @@ function OgaPepperpot.runRaid()
 			if best then
 				local slot = Stalls.removeGremlin(plot, best)
 				if slot then
-					table.insert(b.scooped, { plot = plot, index = best, slot = slot })
+					table.insert(b.scooped, { plot = plot, owner = plot.owner, index = best, slot = slot })
 					pcall(function()
 						local gremlin = GremlinCatalog.get(slot.id)
 						Remotes.get("Toast"):FireClient(plot.owner, "Oga Pepperpot scooped your " .. (gremlin and gremlin.name or "gremlin") .. "! Whack him to get it back!", RED)
@@ -338,6 +349,12 @@ function OgaPepperpot.stageFrozen(feet: Vector3, faceTowards: Vector3)
 	boss = b
 	updateStatus(b)
 	banner("He scoops gremlins from unlocked stalls! Lock (L) or whack him (F)")
+	-- the staged boss leaves once the shot's hold is over, so live raids resume
+	task.delay(OgaPepperpot.FROZEN_SECONDS, function()
+		if boss == b then
+			OgaPepperpot.clear(false)
+		end
+	end)
 end
 
 function OgaPepperpot.start()

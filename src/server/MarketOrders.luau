@@ -74,7 +74,10 @@ function MarketOrders.onProgress(player: Player, kind: string, amount: number, d
 	for _, order in state.orders do
 		local wasProgress = order.progress
 		if OrderBook.apply(order, kind, amount, detail) then
-			MarketOrders.payReward(player, order)
+			local paid, err = pcall(MarketOrders.payReward, player, order)
+			if not paid then
+				warn("[MarketOrders] reward failed: " .. tostring(err))
+			end
 			task.delay(REPLACE_AFTER, function()
 				local now = PlayerState.get(player)
 				if now then
