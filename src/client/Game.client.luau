@@ -18,11 +18,20 @@ pcall(function()
 	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
 end)
 
+-- Runs one setup step; a failure is logged and the rest of the client (and the shot keys) still start.
+local function guarded(name: string, fn: (...any) -> ...any, ...: any)
+	local ok, err = pcall(fn, ...)
+	if not ok then
+		warn("[SnackGremlinHeist] client " .. name .. " failed: " .. tostring(err))
+	end
+	return ok
+end
+
 local gui = Hud.create()
-Toasts.create(gui)
-EffectsClient.create(gui)
-UpgradePanel.create(gui)
-IndexPanel.create(gui)
+guarded("Toasts", Toasts.create, gui)
+guarded("EffectsClient", EffectsClient.create, gui)
+guarded("UpgradePanel", UpgradePanel.create, gui)
+guarded("IndexPanel", IndexPanel.create, gui)
 
 local actions = {
 	lock = function()
@@ -44,14 +53,14 @@ local actions = {
 		IndexPanel.toggle()
 	end,
 }
-Buttons.create(gui, actions)
-InputController.start(actions)
+guarded("Buttons", Buttons.create, gui, actions)
+guarded("InputController", InputController.start, actions)
 
 Remotes.get("StateChanged").OnClientEvent:Connect(function(snapshot)
-	Hud.update(snapshot)
-	Buttons.update(snapshot)
-	UpgradePanel.update(snapshot)
-	IndexPanel.update(snapshot)
+	guarded("Hud.update", Hud.update, snapshot)
+	guarded("Buttons.update", Buttons.update, snapshot)
+	guarded("UpgradePanel.update", UpgradePanel.update, snapshot)
+	guarded("IndexPanel.update", IndexPanel.update, snapshot)
 end)
 Remotes.get("Banner").OnClientEvent:Connect(Hud.showBanner)
 Remotes.get("Toast").OnClientEvent:Connect(Toasts.show)
@@ -68,7 +77,7 @@ RunService.RenderStepped:Connect(function(dt)
 	EffectsClient.stepRainbow()
 end)
 
-ShotDirector.start({
+guarded("ShotDirector", ShotDirector.start, {
 	open = function(name: string)
 		if name == "Upgrades" then
 			UpgradePanel.setOpen(true)
@@ -79,5 +88,8 @@ ShotDirector.start({
 	closeAll = function()
 		UpgradePanel.setOpen(false)
 		IndexPanel.setOpen(false)
+	end,
+	setShotMode = function(on: boolean)
+		pcall(Toasts.setVisible, not on)
 	end,
 })

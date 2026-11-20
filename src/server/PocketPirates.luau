@@ -28,6 +28,9 @@ type Raid = {
 local raids: { Raid } = {}
 local rng = Random.new()
 
+-- The Studio shot director sets this (os.clock time) so no new raid walks into a staged shot.
+PocketPirates.holdUntil = 0
+
 -- Glides the pirate toward a point; returns false if it was whacked on the way.
 function PocketPirates.walkTo(raid: Raid, target: Vector3, speed: number): boolean
 	local t = 0
@@ -194,12 +197,13 @@ function PocketPirates.pickTarget()
 end
 
 -- Studio shot director: a frozen pirate in front of a stall, already holding a gremlin.
-function PocketPirates.stageFrozenRaid(plot)
-	local index = pickOccupied(plot)
+function PocketPirates.stageFrozenRaid(plot, preferredIndex: number?)
+	local index = (preferredIndex and Stalls.slotsOf(plot)[preferredIndex] and preferredIndex) or pickOccupied(plot)
 	if not index then
 		return
 	end
 	local spot = (CFrame.new(Stalls.pedestalPosition(plot, index)) * plot.cframe.Rotation * CFrame.new(0, 0, -6)).Position
+	spot = Vector3.new(spot.X, plot.cframe.Position.Y + Config.STALL_FLOOR_HEIGHT, spot.Z) -- feet on the stall floor
 	local model, status = PirateModel.build(CFrame.lookAt(spot, spot + plot.cframe.LookVector))
 	local raid: Raid = { model = model, plot = plot, status = status, whacked = false, frozen = true }
 	table.insert(raids, raid)
@@ -212,6 +216,37 @@ function PocketPirates.stageFrozenRaid(plot)
 	end)
 end
 
+-- Studio shot director: a frozen pirate bounced off a locked shutter, facing it, at `feet`.
+function PocketPirates.stageLockedOut(plot, feet: Vector3)
+	local model, status = PirateModel.build(CFrame.lookAt(feet, Vector3.new(plot.cframe.Position.X, feet.Y, plot.cframe.Position.Z)))
+	status.Text = "LOCKED OUT!"
+	status.TextColor3 = Color3.fromRGB(80, 220, 255)
+	local raid: Raid = { model = model, plot = plot, status = status, whacked = false, frozen = true }
+	table.insert(raids, raid)
+	task.spawn(function()
+		task.wait(30)
+		raid.frozen = false
+		PocketPirates.walkTo(raid, dockFor(plot), Config.PIRATE_WALK_SPEED)
+		finishRaid(raid)
+	end)
+end
+
+-- Removes every pirate (used before staging a shot so old raids do not wander into frame).
+function PocketPirates.clearAll()
+	for i = #raids, 1, -1 do
+		local raid = raids[i]
+		raid.whacked = true
+		if raid.stolen then
+			if raid.stolenModel then
+				raid.stolenModel:Destroy()
+			end
+			Stalls.placeGremlin(raid.plot, raid.stolen.id, raid.stolen.mutation, raid.stolenIndex)
+			raid.stolen = nil
+		end
+		finishRaid(raid)
+	end
+end
+
 function PocketPirates.start()
 	Remotes.get("RequestWhack").OnServerEvent:Connect(function(player)
 		PocketPirates.whack(player)
@@ -219,7 +254,7 @@ function PocketPirates.start()
 	task.spawn(function()
 		while true do
 			task.wait(Config.PIRATE_INTERVAL)
-			if #Players:GetPlayers() > 0 then
+			if #Players:GetPlayers() > 0 and os.clock() >= PocketPirates.holdUntil then
 				local plot = PocketPirates.pickTarget()
 				if plot then
 					task.spawn(function()

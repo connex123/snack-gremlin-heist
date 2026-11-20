@@ -22,6 +22,11 @@ function Toasts.create(gui: ScreenGui)
 	holder.Parent = gui
 end
 
+-- Hidden while a screenshot is framed so toasts never cover the gremlin labels.
+function Toasts.setVisible(visible: boolean)
+	holder.Visible = visible
+end
+
 local order = 0
 function Toasts.show(text: string, color: Color3?)
 	order -= 1

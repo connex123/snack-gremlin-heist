@@ -8,6 +8,7 @@ local GremlinCatalog = require(Shared.GremlinCatalog)
 local Rarities = require(Shared.Rarities)
 local Mutations = require(Shared.Mutations)
 local Format = require(Shared.Format)
+local ShotFraming = require(Shared.ShotFraming)
 
 local GremlinModel = {}
 
@@ -264,8 +265,13 @@ local EXTRAS: { [string]: (Builder) -> () } = {
 	end,
 }
 
--- Mutations recolour the body, swap its material, add a glow outline and particles.
-function GremlinModel.applyMutation(model: Model, mutationName: string?)
+-- Roblox draws at most 31 Highlights at once; belt and rival gremlins share a smaller budget so the
+-- player's own stall (priority) always glows.
+local GLOW_TAG = "MutationGlow"
+local SHARED_GLOW_BUDGET = 18
+
+-- Mutations recolour the body, swap its material, add a glow outline (budgeted) and particles.
+function GremlinModel.applyMutation(model: Model, mutationName: string?, priority: boolean?)
 	local mutation = Mutations.get(mutationName)
 	if not mutation then
 		return
@@ -281,12 +287,17 @@ function GremlinModel.applyMutation(model: Model, mutationName: string?)
 			end
 		end
 	end
-	local highlight = Instance.new("Highlight")
-	highlight.FillTransparency = 0.75
-	highlight.FillColor = mutation.color
-	highlight.OutlineColor = mutation.particle
-	highlight.DepthMode = Enum.HighlightDepthMode.Occluded
-	highlight.Parent = model
+	if priority or #CollectionService:GetTagged(GLOW_TAG) < SHARED_GLOW_BUDGET then
+		local highlight = Instance.new("Highlight")
+		highlight.FillTransparency = 0.75
+		highlight.FillColor = mutation.color
+		highlight.OutlineColor = mutation.particle
+		highlight.DepthMode = Enum.HighlightDepthMode.Occluded
+		highlight.Parent = model
+		if not priority then
+			CollectionService:AddTag(highlight, GLOW_TAG)
+		end
+	end
 	local body = model:FindFirstChild("Body")
 	if body then
 		local sparkle = Instance.new("ParticleEmitter")
@@ -312,15 +323,17 @@ local function makeText(parent: Instance, name: string, text: string, color: Col
 	label.TextColor3 = color
 	label.LayoutOrder = order
 	local stroke = Instance.new("UIStroke")
-	stroke.Thickness = 3
+	stroke.Thickness = 4
+	stroke.LineJoinMode = Enum.LineJoinMode.Round
 	stroke.Color = strokeColor or Color3.new(0, 0, 0)
 	stroke.Parent = label
 	label.Parent = parent
 	return label
 end
 
--- The floating label: name, rarity (+ mutation), "+$X/s", and the price while on the belt.
-function GremlinModel.attachLabel(model: Model, gremlin: GremlinCatalog.Gremlin, mutationName: string?, incomePerSecond: number, price: number?)
+-- The floating label: name, rarity (+ mutation), "+$X/s", and the price while on the belt. Sized in
+-- studs (ShotFraming) so it reads at judge size; `lift` raises it (back-row pedestals sit higher).
+function GremlinModel.attachLabel(model: Model, gremlin: GremlinCatalog.Gremlin, mutationName: string?, incomePerSecond: number, price: number?, lift: number?)
 	local old = model:FindFirstChild("GremlinLabel")
 	if old then
 		old:Destroy()
@@ -332,23 +345,23 @@ function GremlinModel.attachLabel(model: Model, gremlin: GremlinCatalog.Gremlin,
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "GremlinLabel"
 	gui.Adornee = root
-	gui.Size = UDim2.fromScale(6.4, price and 4.6 or 3.7)
-	gui.StudsOffsetWorldSpace = Vector3.new(0, top + (price and 3.4 or 2.9), 0)
-	gui.MaxDistance = 160
+	local height = price and ShotFraming.LABEL_HEIGHT_PRICED or ShotFraming.LABEL_HEIGHT
+	gui.Size = UDim2.fromScale(ShotFraming.LABEL_WIDTH, height)
+	gui.StudsOffsetWorldSpace = Vector3.new(0, top + ShotFraming.LABEL_GAP + height / 2 + (lift or 0), 0)
+	gui.MaxDistance = 140
 	gui.LightInfluence = 0
 	gui.ResetOnSpawn = false
 	local layout = Instance.new("UIListLayout")
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	layout.Parent = gui
-	local rows = price and 4 or 3
-	local h = 1 / rows
-	makeText(gui, "NameLine", gremlin.name, Color3.new(1, 1, 1), h * 1.05, 1)
+	local h = price and 0.25 or 1 / 3
+	makeText(gui, "NameLine", gremlin.name, Color3.new(1, 1, 1), h * 1.08, 1)
 	local rarityText = string.upper(rarity.name)
 	if mutation then
 		rarityText = string.upper(mutation.name) .. " " .. rarityText
 	end
-	makeText(gui, "RarityLine", rarityText, mutation and mutation.color or rarity.color, h * 0.9, 2, Color3.fromRGB(25, 10, 30))
+	makeText(gui, "RarityLine", rarityText, mutation and mutation.color or rarity.color, h * 0.92, 2, Color3.fromRGB(25, 10, 30))
 	makeText(gui, "IncomeLine", Format.perSecond(incomePerSecond), Color3.fromRGB(80, 255, 90), h, 3, Color3.fromRGB(0, 50, 0))
 	if price then
 		makeText(gui, "PriceLine", Format.money(price), Color3.fromRGB(255, 220, 60), h, 4, Color3.fromRGB(60, 30, 0))
@@ -357,7 +370,7 @@ function GremlinModel.attachLabel(model: Model, gremlin: GremlinCatalog.Gremlin,
 end
 
 -- Builds a whole gremlin model with its feet at `pivot`; the root is anchored.
-function GremlinModel.build(gremlinId: string, mutationName: string?, pivot: CFrame): Model?
+function GremlinModel.build(gremlinId: string, mutationName: string?, pivot: CFrame, priorityGlow: boolean?): Model?
 	local gremlin = GremlinCatalog.get(gremlinId)
 	if not gremlin then
 		warn("Unknown gremlin " .. tostring(gremlinId))
@@ -390,7 +403,7 @@ function GremlinModel.build(gremlinId: string, mutationName: string?, pivot: CFr
 	model:SetAttribute("GremlinId", gremlin.id)
 	model:SetAttribute("Mutation", mutationName)
 	model:SetAttribute("TopHeight", (b.top + 1.2) * b.s)
-	GremlinModel.applyMutation(model, mutationName)
+	GremlinModel.applyMutation(model, mutationName, priorityGlow)
 	model:PivotTo(pivot)
 	return model
 end

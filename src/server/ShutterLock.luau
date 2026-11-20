@@ -58,9 +58,14 @@ function ShutterLock.start()
 			task.wait(0.5)
 			local now = Workspace:GetServerTimeNow()
 			for _, plot in Stalls.plots do
-				local locked = ShutterLock.isLocked(plot)
-				local state = plot.owner and PlayerState.get(plot.owner)
-				ShutterLock.showShutter(plot, locked, state and state.lockUntil - now or 0)
+				local ok, err = pcall(function()
+					local locked = ShutterLock.isLocked(plot)
+					local state = plot.owner and PlayerState.get(plot.owner)
+					ShutterLock.showShutter(plot, locked, state and state.lockUntil - now or 0)
+				end)
+				if not ok then
+					warn("Shutter refresh failed: " .. tostring(err))
+				end
 			end
 		end
 	end)

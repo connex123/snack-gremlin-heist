@@ -14,7 +14,7 @@ local rows: { [string]: { level: TextLabel, buy: TextButton } } = {}
 local rebirthInfo: TextLabel
 
 function UpgradePanel.create(gui: ScreenGui)
-	panel = UiKit.panel(gui, "UpgradePanel", UDim2.fromScale(0.27, 0.47), UDim2.fromScale(0.4, 0.6), UiKit.INK, 0.08)
+	panel = UiKit.panel(gui, "UpgradePanel", UDim2.fromScale(0.2, 0.57), UDim2.fromScale(0.36, 0.5), UiKit.INK, 0.08)
 	panel.AnchorPoint = Vector2.new(0.5, 0.5)
 	panel.Visible = false
 	UiKit.stroke(panel, Color3.fromRGB(60, 190, 80), 4)

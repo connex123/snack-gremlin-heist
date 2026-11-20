@@ -23,7 +23,7 @@ and `ServerScriptService.ShotDirectorServer`) only runs in Studio; TOUR.json lis
 
 Layout: `src/shared` (cast, rarities, mutations, config, remotes) → ReplicatedStorage.Shared, `src/server`
 (one module per system; all player state in PlayerState) → ServerScriptService.Server, `src/client` (HUD) →
-StarterPlayerScripts.Client. Pure-logic tests: `lune run tests/catalog.luau`.
+StarterPlayerScripts.Client. Pure-logic tests: `lune run tests/catalog.luau`; screenshot framing (cameras, label overlap, HUD clearance at 768x480): `lune run tests/shots.luau`. Owner steps for the screenshots: SHOTS.md.
 
 ## Run it
 

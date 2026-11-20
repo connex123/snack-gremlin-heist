@@ -3,8 +3,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local Shared = ReplicatedStorage:WaitForChild("Shared")
-local Server = script.Parent:WaitForChild("Server")
+local Shared = ReplicatedStorage:WaitForChild("Shared", 30)
+local Server = script.Parent:WaitForChild("Server", 30)
 local Config = require(Shared.Config)
 local Remotes = require(Shared.Remotes)
 local GremlinCatalog = require(Shared.GremlinCatalog)
@@ -18,8 +18,12 @@ local LagoonSurge = require(Server.LagoonSurge)
 local PocketPirates = require(Server.PocketPirates)
 local ShutterLock = require(Server.ShutterLock)
 local Upgrades = require(Server.Progression.Upgrades)
+local RivalStalls = require(Server.World.RivalStalls)
+local ShotFraming = require(Shared.ShotFraming)
 
 local ShotDirectorServer = {}
+
+local HOLD_SECONDS = 45 -- surge, pirates, events and rival restocks pause this long after a shot key
 
 -- Eight gremlins of mixed rarities, two mutated, for the cover stall (pedestals 1-5 front, 6-10 back).
 local COVER_BASE = {
@@ -69,20 +73,43 @@ function ShotDirectorServer.stageRichStall(player: Player, plot)
 end
 
 local function cameraAt(plot, eye: Vector3, target: Vector3): CFrame
-	local e = plot.cframe:PointToWorldSpace(eye)
-	local t = plot.cframe:PointToWorldSpace(target)
-	return CFrame.lookAt(e, t)
+	return CFrame.lookAt(plot.cframe:PointToWorldSpace(eye), plot.cframe:PointToWorldSpace(target))
+end
+
+-- Clears what a previous shot or a live timer left around, and holds the timers while this one is up.
+local function prepare()
+	local hold = os.clock() + HOLD_SECONDS
+	LagoonSurge.holdUntil = hold
+	MarketEvents.holdUntil = hold
+	PocketPirates.holdUntil = hold
+	RivalStalls.holdUntil = hold
+	LagoonSurge.abort()
+	LagoonSurge.clearWave()
+	PocketPirates.clearAll()
+end
+
+-- What the client waits for before framing: the stall's gremlin models and the player at `stand`.
+local function expectation(plot, stand: Vector3)
+	local count = 0
+	for _ in Stalls.slotsOf(plot) do
+		count += 1
+	end
+	return { plotIndex = plot.index, models = count, stand = stand }
 end
 
 function ShotDirectorServer.stageCover(player: Player, plot)
+	prepare()
 	ShotDirectorServer.stageRichStall(player, plot)
 	MarketEvents.startEvent("JollofRain", 120)
 	Economy.payIncome()
-	local fh = Config.STALL_FLOOR_HEIGHT
-	local eye = plot.cframe:PointToWorldSpace(Vector3.new(6, 12.5, -27))
-	local standAt = plot.cframe:PointToWorldSpace(Vector3.new(-15, fh + 3, -9))
+	local eye = plot.cframe:PointToWorldSpace(ShotFraming.COVER_EYE)
+	local standAt = plot.cframe:PointToWorldSpace(ShotFraming.COVER_STAND)
 	placeCharacter(player, CFrame.lookAt(standAt, Vector3.new(eye.X, standAt.Y, eye.Z)))
-	return { camera = cameraAt(plot, Vector3.new(6, 12.5, -27), Vector3.new(-1, 6, 2)), fov = 70 }
+	return {
+		camera = cameraAt(plot, ShotFraming.COVER_EYE, ShotFraming.COVER_TARGET),
+		fov = ShotFraming.COVER_FOV,
+		expect = expectation(plot, standAt),
+	}
 end
 
 function ShotDirectorServer.stageBuy(player: Player, plot)
@@ -90,61 +117,79 @@ function ShotDirectorServer.stageBuy(player: Player, plot)
 	if not state then
 		return nil
 	end
+	prepare()
 	Carrying.drop(player, nil)
+	MarketEvents.stopEvent() -- the buy moment reads cleaner without a banner over the carried gremlin
 	SnackBelt.setPaused(true)
 	SnackBelt.clear()
-	local lineup = { { "KilishiKnight", nil, -8 }, { "AkaraAstronaut", nil, -1 }, { "TuwoTitan", nil, 6 }, { "OkraOctopus", "Pepper", 13 }, { "MoiMoiMonk", nil, 20 }, { "ChinChinCheetah", "Lagoon", 27 } }
-	for _, entry in lineup do
-		SnackBelt.spawnOnBelt(entry[1], entry[2], entry[3])
+	local x = plot.cframe.Position.X
+	for _, entry in ShotFraming.BUY_LINEUP do
+		SnackBelt.spawnOnBelt(entry[1], entry[2], x + entry[3])
 	end
-	local x = plot.cframe.Position.X + 3
-	placeCharacter(player, CFrame.lookAt(Vector3.new(x, 3, 7.5), Vector3.new(x, 3, 0)))
+	local stand = ShotFraming.BUY_PLAYER + Vector3.new(x, 0, 0)
+	placeCharacter(player, CFrame.lookAt(stand, Vector3.new(stand.X, stand.Y, Config.BELT_Z)))
 	task.wait(0.4)
-	local legendary = SnackBelt.spawnOnBelt("DanfoDragon", nil, x)
+	local legendary = SnackBelt.spawnOnBelt("DanfoDragon", nil, stand.X)
 	state.cash = math.max(state.cash, 2_500_000)
 	if legendary then
 		SnackBelt.tryBuyModel(player, legendary)
 	end
-	task.delay(25, function()
+	task.delay(HOLD_SECONDS, function()
 		SnackBelt.setPaused(false)
 	end)
-	return { camera = CFrame.lookAt(Vector3.new(x + 5, 10, 25), Vector3.new(x + 7, 5, 0)), fov = 70 }
+	return {
+		camera = CFrame.lookAt(ShotFraming.BUY_EYE + Vector3.new(x, 0, 0), ShotFraming.BUY_TARGET + Vector3.new(x, 0, 0)),
+		fov = ShotFraming.BUY_FOV,
+		expect = { stand = stand },
+	}
 end
 
 function ShotDirectorServer.stageThreat(player: Player, plot)
+	prepare()
 	ShotDirectorServer.stageRichStall(player, plot)
 	local state = PlayerState.get(player)
 	if state then
 		state.lockCooldownUntil = 0
 	end
 	ShutterLock.lock(player)
+	local x = plot.cframe.Position.X
+	-- the rival stall straight across the belt: a pirate already stealing its centre-front gremlin
 	local target = nil
 	for _, other in Stalls.plots do
-		if other.rivalName and other.cframe.Position.Z < 0 and math.abs(other.cframe.Position.X - plot.cframe.Position.X) < 1 then
+		if other.rivalName and other.cframe.Position.Z < 0 and math.abs(other.cframe.Position.X - x) < 1 then
 			target = other
 		end
 	end
-	target = target or Stalls.plots[4]
 	if target then
-		if next(Stalls.slotsOf(target)) == nil then
-			Stalls.placeGremlin(target, "OgbonoOverlord", "Gold", 3)
-		end
-		PocketPirates.stageFrozenRaid(target)
+		Stalls.removeGremlin(target, 3)
+		Stalls.placeGremlin(target, "OgbonoOverlord", "Gold", 3)
+		PocketPirates.stageFrozenRaid(target, 3)
 	end
-	LagoonSurge.stageFrozenWave(Config.LAGOON_EDGE_Z - 25, 7)
-	local base = plot.cframe.Position
-	placeCharacter(player, CFrame.lookAt(Vector3.new(base.X - 20, 3, 14), Vector3.new(base.X - 20, 3, -40)))
-	return { camera = CFrame.lookAt(Vector3.new(base.X - 50, 22, 20), Vector3.new(base.X + 10, 4, 0)), fov = 70 }
+	PocketPirates.stageLockedOut(plot, ShotFraming.THREAT_PIRATE + Vector3.new(x, 0, 0))
+	LagoonSurge.stageFrozenWave(ShotFraming.THREAT_WAVE_Z, 9)
+	local stand = ShotFraming.THREAT_PLAYER + Vector3.new(x, 0, 0)
+	local pirate = ShotFraming.THREAT_PIRATE + Vector3.new(x, stand.Y, 0)
+	placeCharacter(player, CFrame.lookAt(stand, pirate))
+	return {
+		camera = CFrame.lookAt(ShotFraming.THREAT_EYE + Vector3.new(x, 0, 0), ShotFraming.THREAT_TARGET + Vector3.new(x, 0, 0)),
+		fov = ShotFraming.THREAT_FOV,
+		expect = expectation(plot, stand),
+	}
 end
 
 function ShotDirectorServer.stageProgress(player: Player, plot)
+	prepare()
 	ShotDirectorServer.stageRichStall(player, plot)
 	MarketEvents.startEvent("PepperHour", 120)
-	local fh = Config.STALL_FLOOR_HEIGHT
-	local eye = plot.cframe:PointToWorldSpace(Vector3.new(0, 14, -30))
-	local standAt = plot.cframe:PointToWorldSpace(Vector3.new(0, fh + 3, -10))
+	local eye = plot.cframe:PointToWorldSpace(ShotFraming.PROGRESS_EYE)
+	local standAt = plot.cframe:PointToWorldSpace(ShotFraming.PROGRESS_STAND)
 	placeCharacter(player, CFrame.lookAt(standAt, Vector3.new(eye.X, standAt.Y, eye.Z)))
-	return { camera = cameraAt(plot, Vector3.new(0, 14, -30), Vector3.new(0, 6, 2)), fov = 70, panels = { "Upgrades", "Index" } }
+	return {
+		camera = cameraAt(plot, ShotFraming.PROGRESS_EYE, ShotFraming.PROGRESS_TARGET),
+		fov = ShotFraming.PROGRESS_FOV,
+		panels = { "Upgrades", "Index" },
+		expect = expectation(plot, standAt),
+	}
 end
 
 local STAGES = {
@@ -161,16 +206,26 @@ function ShotDirectorServer.start()
 	local ready = Remotes.get("ShotReady")
 	Remotes.get("ShotRequest").OnServerEvent:Connect(function(player, shot)
 		local stage = typeof(shot) == "string" and STAGES[shot]
+		if not stage then
+			return
+		end
 		local plot = Stalls.plotOf(player)
-		if not stage or not plot then
+		if not plot then
+			-- Play Solo can beat the stall claim on a slow first load: claim now rather than ignore the key.
+			plot = Stalls.claimStall(player)
+		end
+		if not plot then
+			warn("[ShotDirector] shot " .. shot .. ": you have no stall yet")
 			return
 		end
 		local ok, result = pcall(stage, player, plot)
 		if ok and result then
 			result.shot = shot
 			ready:FireClient(player, result)
+			print("[ShotDirector] staged " .. shot)
 		elseif not ok then
-			warn("Shot " .. shot .. " failed: " .. tostring(result))
+			warn("[ShotDirector] shot " .. shot .. " failed: " .. tostring(result))
+			ready:FireClient(player, { shot = shot, failed = tostring(result) })
 		end
 	end)
 end

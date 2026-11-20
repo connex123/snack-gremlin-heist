@@ -20,6 +20,9 @@ local active: string? = nil
 local endsAt = 0
 local rainPart: BasePart? = nil
 
+-- The Studio shot director sets this (os.clock time) so the timer does not swap a staged event.
+MarketEvents.holdUntil = 0
+
 function MarketEvents.activeEvent()
 	return active and MarketEvents.EVENTS[active] or nil
 end
@@ -108,8 +111,13 @@ function MarketEvents.start()
 		local turn = 0
 		while true do
 			task.wait(Config.EVENT_INTERVAL)
-			turn += 1
-			MarketEvents.startEvent(ORDER[(turn - 1) % #ORDER + 1])
+			if os.clock() >= MarketEvents.holdUntil then
+				turn += 1
+				local ok, err = pcall(MarketEvents.startEvent, ORDER[(turn - 1) % #ORDER + 1])
+				if not ok then
+					warn("Market event failed: " .. tostring(err))
+				end
+			end
 		end
 	end)
 end

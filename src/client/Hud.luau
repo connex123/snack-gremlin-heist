@@ -18,6 +18,7 @@ local rateLabel: TextLabel
 local infoLabel: TextLabel
 local carryFrame: Frame
 local carryLabel: TextLabel
+local carryName: TextLabel
 local banners: { [string]: { frame: Frame, title: TextLabel, sub: TextLabel, endsAt: number } } = {}
 local shownCash = 0
 local targetCash = 0
@@ -30,7 +31,8 @@ function Hud.create(): ScreenGui
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
-	local cash = UiKit.panel(gui, "CashPanel", UDim2.fromScale(0.012, 0.1), UDim2.fromScale(0.25, 0.2), UiKit.INK, 0.2)
+	-- left column, below Roblox's own top-left buttons and clear of the centred banners (x 0.24-0.76)
+	local cash = UiKit.panel(gui, "CashPanel", UDim2.fromScale(0.012, 0.13), UDim2.fromScale(0.22, 0.18), UiKit.INK, 0.15)
 	UiKit.stroke(cash, UiKit.YELLOW, 4)
 	cashLabel = UiKit.text(cash, "Cash", "$0", UDim2.fromScale(0.05, 0.04), UDim2.fromScale(0.9, 0.5), UiKit.YELLOW)
 	rateLabel = UiKit.text(cash, "Rate", "+$0/s", UDim2.fromScale(0.05, 0.52), UDim2.fromScale(0.9, 0.28), UiKit.GREEN)
@@ -55,11 +57,12 @@ function Hud.create(): ScreenGui
 		logoStroke.Thickness = 5
 	end
 
-	carryFrame = UiKit.panel(gui, "CarryBanner", UDim2.fromScale(0.5, 0.72), UDim2.fromScale(0.5, 0.085), UiKit.YELLOW, 0.05)
-	carryFrame.AnchorPoint = Vector2.new(0.5, 0)
+	-- the carry card sits under the cash panel so it never covers the player in the middle of the view
+	carryFrame = UiKit.panel(gui, "CarryCard", UDim2.fromScale(0.012, 0.325), UDim2.fromScale(0.22, 0.13), UiKit.YELLOW, 0.05)
 	carryFrame.Visible = false
 	UiKit.stroke(carryFrame, UiKit.INK, 4)
-	carryLabel = UiKit.text(carryFrame, "Text", "", UDim2.fromScale(0.03, 0.08), UDim2.fromScale(0.94, 0.84), Color3.new(1, 1, 1))
+	carryLabel = UiKit.text(carryFrame, "Text", "CARRYING: RUN HOME!", UDim2.fromScale(0.05, 0.06), UDim2.fromScale(0.9, 0.4), Color3.new(1, 1, 1))
+	carryName = UiKit.text(carryFrame, "Name", "", UDim2.fromScale(0.05, 0.5), UDim2.fromScale(0.9, 0.44), Color3.new(1, 1, 1))
 	return gui
 end
 
@@ -73,8 +76,14 @@ function Hud.update(snapshot)
 	if carrying then
 		local rarity = Rarities.get(carrying.rarity)
 		local mutation = Mutations.get(carrying.mutation)
-		carryLabel.Text = "CARRYING " .. string.upper((mutation and mutation.name .. " " or "") .. carrying.name) .. " (" .. string.upper(rarity.name) .. "): RUN HOME!"
-		carryFrame.BackgroundColor3 = rarity.color:Lerp(Color3.new(0, 0, 0), 0.25)
+		carryLabel.Text = "CARRYING: RUN HOME!"
+		carryName.Text = string.upper((mutation and mutation.name .. " " or "") .. carrying.name)
+		carryName.TextColor3 = mutation and mutation.color or rarity.color
+		carryFrame.BackgroundColor3 = UiKit.INK
+		local stroke = carryFrame:FindFirstChildOfClass("UIStroke")
+		if stroke then
+			stroke.Color = rarity.color
+		end
 	end
 end
 

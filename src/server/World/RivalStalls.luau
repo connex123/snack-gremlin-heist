@@ -14,6 +14,27 @@ RivalStalls.NAMES = { "AUNTIE BISI'S BITES", "CHEF TUNDE'S GRILL", "MAMA NGOZI'S
 
 local rng = Random.new(42)
 
+-- The Studio shot director sets this (os.clock time) so rival stalls do not change mid-shot.
+RivalStalls.holdUntil = 0
+
+-- One restock pass over every rival stall.
+function RivalStalls.restock()
+	for _, plot in Stalls.plots do
+		if plot.rivalName then
+			local index = Stalls.firstFreePedestal(plot)
+			if index and index <= 9 then
+				local id, mutation = RivalStalls.rollRivalGremlin()
+				Stalls.placeGremlin(plot, id, mutation, index)
+			elseif rng:NextNumber() < 0.5 then
+				local swap = rng:NextInteger(1, 9)
+				Stalls.removeGremlin(plot, swap)
+				local id, mutation = RivalStalls.rollRivalGremlin()
+				Stalls.placeGremlin(plot, id, mutation, swap)
+			end
+		end
+	end
+end
+
 -- A rival's gremlin: rolled with high luck so their stalls look tempting.
 function RivalStalls.rollRivalGremlin(): (string, string?)
 	local rarity = Rarities.rollRarity(rng:NextNumber(), 6)
@@ -49,18 +70,10 @@ function RivalStalls.start()
 	task.spawn(function()
 		while true do
 			task.wait(20)
-			for _, plot in Stalls.plots do
-				if plot.rivalName then
-					local index = Stalls.firstFreePedestal(plot)
-					if index and index <= 9 then
-						local id, mutation = RivalStalls.rollRivalGremlin()
-						Stalls.placeGremlin(plot, id, mutation, index)
-					elseif rng:NextNumber() < 0.5 then
-						local swap = rng:NextInteger(1, 9)
-						Stalls.removeGremlin(plot, swap)
-						local id, mutation = RivalStalls.rollRivalGremlin()
-						Stalls.placeGremlin(plot, id, mutation, swap)
-					end
+			if os.clock() >= RivalStalls.holdUntil then
+				local ok, err = pcall(RivalStalls.restock)
+				if not ok then
+					warn("Rival restock failed: " .. tostring(err))
 				end
 			end
 		end

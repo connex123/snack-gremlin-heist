@@ -19,11 +19,24 @@ local Upgrades = require(script.Progression.Upgrades)
 local Rebirth = require(script.Progression.Rebirth)
 local RivalStalls = require(script.World.RivalStalls)
 
-Stalls.init(WorldBuilder.buildAll())
-RivalStalls.fillEmptyStalls()
+-- Runs one system step; a failure is logged with the system's name and the others still start.
+local function guarded(name: string, fn: (...any) -> ...any, ...: any)
+	local ok, err = pcall(fn, ...)
+	if not ok then
+		warn("[SnackGremlinHeist] " .. name .. " failed to start: " .. tostring(err))
+	end
+	return ok
+end
+
+if not guarded("WorldBuilder", function()
+	Stalls.init(WorldBuilder.buildAll())
+end) then
+	warn("[SnackGremlinHeist] the market did not build; stalls are missing")
+end
+guarded("RivalStalls.fill", RivalStalls.fillEmptyStalls)
 
 local function onCharacterAdded(player: Player, character: Model)
-	Carrying.watchCharacter(player, character)
+	task.spawn(Carrying.watchCharacter, player, character)
 	task.wait(0.2)
 	local plot = Stalls.plotOf(player)
 	if plot and character.Parent then
@@ -34,8 +47,8 @@ end
 
 local function onPlayerAdded(player: Player)
 	PlayerState.create(player)
-	Stalls.claimStall(player)
-	MarketEvents.syncPlayer(player)
+	guarded("Stalls.claimStall", Stalls.claimStall, player)
+	guarded("MarketEvents.syncPlayer", MarketEvents.syncPlayer, player)
 	task.delay(3, function()
 		if player.Parent then
 			Remotes.get("Toast"):FireClient(player, "Walk to the Snack Belt and press E to buy a gremlin!", Color3.fromRGB(255, 220, 60))
@@ -61,24 +74,22 @@ for _, player in Players:GetPlayers() do
 	task.spawn(onPlayerAdded, player)
 end
 
-PlayerState.startSnapshotPump()
-Economy.start()
-Carrying.start()
-SnackBelt.start()
-LagoonSurge.start()
-PocketPirates.start()
-ShutterLock.start()
-Upgrades.start()
-Rebirth.start()
-MarketEvents.start()
-RivalStalls.start()
+guarded("PlayerState.snapshots", PlayerState.startSnapshotPump)
+guarded("Economy", Economy.start)
+guarded("Carrying", Carrying.start)
+guarded("SnackBelt", SnackBelt.start)
+guarded("LagoonSurge", LagoonSurge.start)
+guarded("PocketPirates", PocketPirates.start)
+guarded("ShutterLock", ShutterLock.start)
+guarded("Upgrades", Upgrades.start)
+guarded("Rebirth", Rebirth.start)
+guarded("MarketEvents", MarketEvents.start)
+guarded("RivalStalls", RivalStalls.start)
 -- Studio-only screenshot staging lives beside this folder.
 local shotDirector = script.Parent:FindFirstChild("ShotDirectorServer")
 if shotDirector then
-	local ok, err = pcall(function()
+	guarded("ShotDirectorServer", function()
 		require(shotDirector).start()
 	end)
-	if not ok then
-		warn("ShotDirectorServer: " .. tostring(err))
-	end
 end
+print("[SnackGremlinHeist] server ready")
