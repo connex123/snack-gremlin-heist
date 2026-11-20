@@ -1,68 +1,36 @@
 {
-  "name": "house-dodge",
+  "name": "snack-gremlin-heist",
   "tree": {
     "$className": "DataModel",
-    "Players": {
-      "$properties": {
-        "CharacterAutoLoads": false
-      }
+    "ReplicatedStorage": {
+      "Shared": { "$path": "src/shared" }
     },
     "ServerScriptService": {
-      "Server": {
-        "$path": "src/server"
-      }
+      "Server": { "$path": "src/server" },
+      "ShotDirectorServer": { "$path": "src/studio/ShotDirectorServer.luau" }
     },
     "StarterPlayer": {
       "StarterPlayerScripts": {
-        "Client": {
-          "$path": "src/client"
-        }
+        "Client": { "$path": "src/client" }
       }
     },
+    "Players": {
+      "$properties": { "CharacterAutoLoads": true }
+    },
     "Workspace": {
-      "$properties": {
-        "FilteringEnabled": true
-      },
-      "Baseplate": {
-        "$className": "Part",
-        "$properties": {
-          "Anchored": true,
-          "Color": [
-            0.38823,
-            0.37254,
-            0.38823
-          ],
-          "Locked": true,
-          "Position": [
-            0,
-            -10,
-            0
-          ],
-          "Size": [
-            512,
-            20,
-            512
-          ]
-        }
-      }
+      "$properties": { "FilteringEnabled": true }
     },
     "Lighting": {
       "$properties": {
-        "Ambient": [
-          0,
-          0,
-          0
-        ],
-        "Brightness": 2,
+        "Technology": "Future",
+        "ClockTime": 17.6,
+        "Brightness": 3,
         "GlobalShadows": true,
-        "Outlines": false,
-        "Technology": "Voxel"
+        "Outlines": false
       }
     },
     "SoundService": {
-      "$properties": {
-        "RespectFilteringEnabled": true
-      }
+      "$properties": { "RespectFilteringEnabled": true }
     }
   }
 }
