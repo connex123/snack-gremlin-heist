@@ -13,7 +13,7 @@ local title: TextLabel
 local rows: { [string]: { count: TextLabel, names: TextLabel, bar: Frame } } = {}
 
 function IndexPanel.create(gui: ScreenGui)
-	panel = UiKit.panel(gui, "IndexPanel", UDim2.fromScale(0.79, 0.57), UDim2.fromScale(0.38, 0.5), UiKit.INK, 0.08)
+	panel = UiKit.panel(gui, "IndexPanel", UDim2.fromScale(0.79, 0.605), UDim2.fromScale(0.38, 0.44), UiKit.INK, 0.08)
 	panel.AnchorPoint = Vector2.new(0.5, 0.5)
 	panel.Visible = false
 	UiKit.stroke(panel, Color3.fromRGB(255, 160, 20), 4)

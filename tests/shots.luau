@@ -82,13 +82,29 @@ local HUD = {
 	{ "logo", 0.8, 0.048, 0.99, 0.12 },
 	{ "cash", 0.012, 0.13, 0.232, 0.31 },
 	{ "carry card", 0.012, 0.325, 0.232, 0.455 },
-	{ "orders", 0.8, 0.135, 0.99, 0.42 },
+	{ "orders", 0.8, 0.135, 0.99, 0.375 },
 	{ "buttons", 0.105, 0.835, 0.895, 0.975 },
 }
 local ROBLOX_MENU = { 0, 0, 0.16, 0.12 } -- Roblox's own top-left buttons at a typical Studio window
 
 local function overlaps(a, b)
 	return a[1] < b[3] and b[1] < a[3] and a[2] < b[4] and b[2] < a[4]
+end
+
+-- The HUD pieces never cover each other, including the progress shot's Upgrades and Index panels.
+do
+	local all = table.clone(HUD)
+	table.insert(all, { "upgrades panel", 0.02, 0.385, 0.38, 0.825 })
+	table.insert(all, { "index panel", 0.6, 0.385, 0.98, 0.825 })
+	table.insert(all, { "surge banner", 0.27, 0.165, 0.73, 0.265 })
+	for i = 1, #all do
+		for j = i + 1, #all do
+			local a, b = all[i], all[j]
+			-- the carry card and the Upgrades panel only meet if you open Upgrades while carrying (never in a shot)
+			local carryAndUpgrades = (a[1] == "carry card" and b[1] == "upgrades panel")
+			check(carryAndUpgrades or not overlaps({ a[2], a[3], a[4], a[5] }, { b[2], b[3], b[4], b[5] }), "HUD " .. a[1] .. " overlaps HUD " .. b[1])
+		end
+	end
 end
 
 -- One shot: labels {name, world centre, studs w/h}, subjects {name, world point}.

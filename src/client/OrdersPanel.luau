@@ -6,7 +6,7 @@ local OrdersPanel = {}
 
 -- Screen-scale rectangle, mirrored in tests/shots.luau.
 OrdersPanel.POSITION = UDim2.fromScale(0.8, 0.135)
-OrdersPanel.SIZE = UDim2.fromScale(0.19, 0.285)
+OrdersPanel.SIZE = UDim2.fromScale(0.19, 0.24) -- ends at y 0.375, above the Index panel
 
 type Row = { frame: Frame, text: TextLabel, fill: Frame, count: TextLabel, reward: TextLabel }
 local rows: { Row } = {}
