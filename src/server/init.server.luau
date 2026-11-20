@@ -2,22 +2,42 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Remotes = require(ReplicatedStorage:WaitForChild("Shared").Remotes)
+local Remotes = require(ReplicatedStorage:WaitForChild("Shared", 30):WaitForChild("Remotes", 10))
 Remotes.createAll()
 
-local PlayerState = require(script.PlayerState)
-local WorldBuilder = require(script.World.WorldBuilder)
-local Stalls = require(script.Stalls)
-local Economy = require(script.Economy)
-local Carrying = require(script.Carrying)
-local SnackBelt = require(script.SnackBelt)
-local MarketEvents = require(script.MarketEvents)
-local LagoonSurge = require(script.LagoonSurge)
-local PocketPirates = require(script.PocketPirates)
-local ShutterLock = require(script.ShutterLock)
-local Upgrades = require(script.Progression.Upgrades)
-local Rebirth = require(script.Progression.Rebirth)
-local RivalStalls = require(script.World.RivalStalls)
+-- Requires a server module by path, or returns nil with a warning so the other systems still start.
+local function safeRequire(path: string): any
+	local node: Instance? = script
+	for part in string.gmatch(path, "[^%.]+") do
+		node = node and node:FindFirstChild(part)
+	end
+	if not node then
+		warn("[SnackGremlinHeist] module missing: " .. path)
+		return nil
+	end
+	local ok, result = pcall(require, node)
+	if not ok then
+		warn("[SnackGremlinHeist] module " .. path .. " failed to load: " .. tostring(result))
+		return nil
+	end
+	return result
+end
+
+local PlayerState = safeRequire("PlayerState")
+local WorldBuilder = safeRequire("World.WorldBuilder")
+local Stalls = safeRequire("Stalls")
+local Economy = safeRequire("Economy")
+local Carrying = safeRequire("Carrying")
+local SnackBelt = safeRequire("SnackBelt")
+local MarketEvents = safeRequire("MarketEvents")
+local LagoonSurge = safeRequire("LagoonSurge")
+local PocketPirates = safeRequire("PocketPirates")
+local ShutterLock = safeRequire("ShutterLock")
+local Upgrades = safeRequire("Progression.Upgrades")
+local Rebirth = safeRequire("Progression.Rebirth")
+local RivalStalls = safeRequire("World.RivalStalls")
+local MarketOrders = safeRequire("MarketOrders")
+local OgaPepperpot = safeRequire("OgaPepperpot")
 
 -- Runs one system step; a failure is logged with the system's name and the others still start.
 local function guarded(name: string, fn: (...any) -> ...any, ...: any)
@@ -36,22 +56,28 @@ end
 guarded("RivalStalls.fill", RivalStalls.fillEmptyStalls)
 
 local function onCharacterAdded(player: Player, character: Model)
-	task.spawn(Carrying.watchCharacter, player, character)
-	task.wait(0.2)
-	local plot = Stalls.plotOf(player)
-	if plot and character.Parent then
-		character:PivotTo(Stalls.frontSpot(plot))
+	if Carrying then
+		task.spawn(guarded, "Carrying.watchCharacter", Carrying.watchCharacter, player, character)
 	end
-	Upgrades.applyWalkSpeed(player)
+	task.wait(0.2)
+	guarded("spawn at stall", function()
+		local plot = Stalls.plotOf(player)
+		if plot and character.Parent then
+			character:PivotTo(Stalls.frontSpot(plot))
+		end
+	end)
+	guarded("walk speed", Upgrades.applyWalkSpeed, player)
 end
 
 local function onPlayerAdded(player: Player)
-	PlayerState.create(player)
+	guarded("PlayerState.create", PlayerState.create, player)
 	guarded("Stalls.claimStall", Stalls.claimStall, player)
 	guarded("MarketEvents.syncPlayer", MarketEvents.syncPlayer, player)
 	task.delay(3, function()
 		if player.Parent then
-			Remotes.get("Toast"):FireClient(player, "Walk to the Snack Belt and press E to buy a gremlin!", Color3.fromRGB(255, 220, 60))
+			guarded("welcome toast", function()
+				Remotes.get("Toast"):FireClient(player, "Walk to the Snack Belt and press E to buy a gremlin!", Color3.fromRGB(255, 220, 60))
+			end)
 		end
 	end)
 	player.CharacterAdded:Connect(function(character)
@@ -63,9 +89,9 @@ local function onPlayerAdded(player: Player)
 end
 
 local function onPlayerRemoving(player: Player)
-	Carrying.drop(player, nil)
-	Stalls.releaseStall(player)
-	PlayerState.remove(player)
+	guarded("drop on leave", Carrying.drop, player, nil)
+	guarded("release stall", Stalls.releaseStall, player)
+	guarded("PlayerState.remove", PlayerState.remove, player)
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
@@ -74,17 +100,29 @@ for _, player in Players:GetPlayers() do
 	task.spawn(onPlayerAdded, player)
 end
 
-guarded("PlayerState.snapshots", PlayerState.startSnapshotPump)
-guarded("Economy", Economy.start)
-guarded("Carrying", Carrying.start)
-guarded("SnackBelt", SnackBelt.start)
-guarded("LagoonSurge", LagoonSurge.start)
-guarded("PocketPirates", PocketPirates.start)
-guarded("ShutterLock", ShutterLock.start)
-guarded("Upgrades", Upgrades.start)
-guarded("Rebirth", Rebirth.start)
-guarded("MarketEvents", MarketEvents.start)
-guarded("RivalStalls", RivalStalls.start)
+-- Starts module.start() (or another function) if the module loaded; failures are named and skipped.
+local function startSystem(name: string, module: any, fnName: string?)
+	local fn = module and module[fnName or "start"]
+	if typeof(fn) ~= "function" then
+		warn("[SnackGremlinHeist] " .. name .. " not started (module unavailable)")
+		return
+	end
+	guarded(name, fn)
+end
+
+startSystem("PlayerState.snapshots", PlayerState, "startSnapshotPump")
+startSystem("Economy", Economy)
+startSystem("Carrying", Carrying)
+startSystem("SnackBelt", SnackBelt)
+startSystem("LagoonSurge", LagoonSurge)
+startSystem("PocketPirates", PocketPirates)
+startSystem("ShutterLock", ShutterLock)
+startSystem("Upgrades", Upgrades)
+startSystem("Rebirth", Rebirth)
+startSystem("MarketEvents", MarketEvents)
+startSystem("RivalStalls", RivalStalls)
+startSystem("MarketOrders", MarketOrders)
+startSystem("OgaPepperpot", OgaPepperpot)
 -- Studio-only screenshot staging lives beside this folder.
 local shotDirector = script.Parent:FindFirstChild("ShotDirectorServer")
 if shotDirector then

@@ -4,7 +4,7 @@
 local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Config = require(ReplicatedStorage:WaitForChild("Shared").Config)
+local Config = require(ReplicatedStorage:WaitForChild("Shared", 30).Config)
 
 local WorldBuilder = {}
 

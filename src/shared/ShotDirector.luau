@@ -72,9 +72,9 @@ function ShotDirector.applyShot(payload, panels)
 		warn("[ShotDirector] " .. tostring(payload.shot) .. ": world still replicating after " .. STAGE_WAIT .. " s, framing anyway")
 	end
 	task.wait(0.2) -- one more beat for labels and the cash counter to settle
-	panels.closeAll()
+	pcall(panels.closeAll)
 	for _, name in payload.panels or {} do
-		panels.open(name)
+		pcall(panels.open, name)
 	end
 	camera.CameraType = Enum.CameraType.Scriptable
 	camera.FieldOfView = payload.fov or 70
@@ -96,8 +96,8 @@ function ShotDirector.resetCamera(panels)
 			camera.CameraSubject = humanoid
 		end
 	end
-	panels.closeAll()
-	panels.setShotMode(false)
+	pcall(panels.closeAll)
+	pcall(panels.setShotMode, false)
 	setCoreGui(Enum.CoreGuiType.PlayerList, true)
 	setCoreGui(Enum.CoreGuiType.Chat, true)
 end
@@ -134,11 +134,19 @@ function ShotDirector.start(panels)
 			if os.clock() < busyUntil then
 				return
 			end
-			busyUntil = os.clock() + REQUEST_TIMEOUT
+			local stamp = os.clock() + REQUEST_TIMEOUT
+			busyUntil = stamp
 			setCoreGui(Enum.CoreGuiType.PlayerList, false)
 			setCoreGui(Enum.CoreGuiType.Chat, false)
-			panels.setShotMode(true)
+			pcall(panels.setShotMode, true)
+			print("[ShotDirector] key " .. shot .. ": staging...")
 			request:FireServer(shot)
+			task.delay(REQUEST_TIMEOUT, function()
+				if busyUntil == stamp then
+					busyUntil = 0
+					warn("[ShotDirector] no reply from the server for " .. shot .. ": press the key again, or 0 for the play camera")
+				end
+			end)
 		elseif input.KeyCode == Enum.KeyCode.Zero then
 			busyUntil = 0
 			ShotDirector.resetCamera(panels)

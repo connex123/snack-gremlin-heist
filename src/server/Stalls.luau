@@ -3,7 +3,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Shared = ReplicatedStorage:WaitForChild("Shared", 30)
 local Config = require(Shared.Config)
 local GremlinCatalog = require(Shared.GremlinCatalog)
 local Mutations = require(Shared.Mutations)

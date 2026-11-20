@@ -2,7 +2,7 @@
 -- then swap one for a fresh catch from the belt.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Shared = ReplicatedStorage:WaitForChild("Shared", 30)
 local Rarities = require(Shared.Rarities)
 local Mutations = require(Shared.Mutations)
 local GremlinCatalog = require(Shared.GremlinCatalog)

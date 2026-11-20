@@ -3,7 +3,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
-local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Shared = ReplicatedStorage:WaitForChild("Shared", 30)
 local Format = require(Shared.Format)
 local Config = require(Shared.Config)
 local UiKit = require(script.Parent.UiKit)

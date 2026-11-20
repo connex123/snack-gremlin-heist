@@ -130,10 +130,7 @@ local function runShot(name, cam, fov, labels, subjects, w, h, minLabelPx)
 	end
 end
 
-local COVER = {
-	{ "PuffPuffPaladin", nil }, { "JollofJetpack", "Gold" }, { "DanfoDragon", nil }, { "SuyaSamurai", nil }, { "ZoboZeppelin", nil },
-	{ "AmalaArchmage", nil }, { "GeneratorSeraph", "Rainbow" }, { "PlantainPharaoh", "Neon" },
-}
+local COVER = F.COVER_LINEUP
 
 local function stallLabels(cf, entries)
 	local labels = {}

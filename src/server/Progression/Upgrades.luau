@@ -1,7 +1,7 @@
 -- Upgrades: spend cash on More Pedestals, Belt Luck, Quick Feet and Longer Lock (costs in Config).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Shared = ReplicatedStorage:WaitForChild("Shared", 30)
 local Config = require(Shared.Config)
 local Remotes = require(Shared.Remotes)
 local Format = require(Shared.Format)

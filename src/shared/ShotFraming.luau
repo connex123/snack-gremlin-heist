@@ -21,6 +21,11 @@ ShotFraming.COVER_EYE = Vector3.new(-2, 26, -20)
 ShotFraming.COVER_TARGET = Vector3.new(-1, 8, 3)
 ShotFraming.COVER_STAND = Vector3.new(-17.5, 4.6, -5) -- right of pedestal 1, under its label, above the buttons
 ShotFraming.COVER_FOV = 70
+-- The cover stall: pedestals 1-5 front, 6-10 back; mixed rarities, glowing mutations, a Divine and a Secret.
+ShotFraming.COVER_LINEUP = {
+	{ "PuffPuffPaladin", nil }, { "JollofJetpack", "Gold" }, { "DanfoDragon", nil }, { "SuyaSamurai", nil }, { "ZoboZeppelin", nil },
+	{ "AmalaArchmage", nil }, { "GeneratorSeraph", "Rainbow" }, { "PlantainPharaoh", "Neon" },
+}
 
 -- Buy (key 2), world-relative to the stall's x: the player on the lane, back to camera, a Legendary overhead.
 ShotFraming.BUY_PLAYER = Vector3.new(3, 3, 7.5)
@@ -29,6 +34,7 @@ ShotFraming.BUY_TARGET = Vector3.new(4, 7.5, 0)
 -- Belt lineup for the buy shot: x offsets from the stall, right of the player (the cash panel is on the left).
 ShotFraming.BUY_LINEUP = { { "KilishiKnight", nil, -9 }, { "OkraOctopus", "Pepper", 11 }, { "ChinChinCheetah", "Lagoon", 22 } }
 ShotFraming.BUY_FOV = 70
+ShotFraming.BUY_CARRIED = "DanfoDragon"
 
 -- Threat (key 3), world-relative to the stall's x: from beside the player's stall looking north-east,
 -- a Pocket Pirate locked out at the glowing shutter, the player ready to whack it, a second pirate
@@ -39,6 +45,7 @@ ShotFraming.THREAT_PIRATE = Vector3.new(4, 0, 22) -- feet, in front of the shutt
 ShotFraming.THREAT_PLAYER = Vector3.new(-7, 3, 18)
 ShotFraming.THREAT_WAVE_Z = -84
 ShotFraming.THREAT_FOV = 70
+ShotFraming.THREAT_BOSS = Vector3.new(-14, 0, 40) -- Oga Pepperpot's feet, behind the player on the lane
 
 -- Progress (key 4): straight on to the stall, panels over the sides.
 ShotFraming.PROGRESS_EYE = Vector3.new(0, 14, -30)

@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
-local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Shared = ReplicatedStorage:WaitForChild("Shared", 30)
 local Format = require(Shared.Format)
 local Rarities = require(Shared.Rarities)
 local Mutations = require(Shared.Mutations)
@@ -29,7 +29,7 @@ function Hud.create(): ScreenGui
 	gui.IgnoreGuiInset = true
 	gui.ResetOnSpawn = false
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui", 30)
 
 	-- left column, below Roblox's own top-left buttons and clear of the centred banners (x 0.24-0.76)
 	local cash = UiKit.panel(gui, "CashPanel", UDim2.fromScale(0.012, 0.13), UDim2.fromScale(0.22, 0.18), UiKit.INK, 0.15)

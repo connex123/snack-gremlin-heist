@@ -1,7 +1,7 @@
 -- IndexPanel: the Gremlin Index, how many of each rarity you have discovered, with their names.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Shared = ReplicatedStorage:WaitForChild("Shared", 30)
 local Rarities = require(Shared.Rarities)
 local GremlinCatalog = require(Shared.GremlinCatalog)
 local UiKit = require(script.Parent.UiKit)

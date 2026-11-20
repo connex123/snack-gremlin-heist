@@ -2,7 +2,7 @@
 -- new stall floor colour. Upgrades and your Index are kept.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Shared = ReplicatedStorage:WaitForChild("Shared", 30)
 local Config = require(Shared.Config)
 local Remotes = require(Shared.Remotes)
 local Format = require(Shared.Format)

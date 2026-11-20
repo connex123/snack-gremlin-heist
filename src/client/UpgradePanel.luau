@@ -1,7 +1,7 @@
 -- UpgradePanel: the four upgrades with level and cost, and the Rebirth section with its reward.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Shared = ReplicatedStorage:WaitForChild("Shared", 30)
 local Config = require(Shared.Config)
 local Format = require(Shared.Format)
 local Remotes = require(Shared.Remotes)
