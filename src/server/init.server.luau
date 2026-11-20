@@ -38,6 +38,7 @@ local Rebirth = safeRequire("Progression.Rebirth")
 local RivalStalls = safeRequire("World.RivalStalls")
 local MarketOrders = safeRequire("MarketOrders")
 local OgaPepperpot = safeRequire("OgaPepperpot")
+local FusePot = safeRequire("FusePot")
 
 -- Runs one system step; a failure is logged with the system's name and the others still start.
 local function guarded(name: string, fn: (...any) -> ...any, ...: any)
@@ -124,6 +125,7 @@ startSystem("MarketEvents", MarketEvents)
 startSystem("RivalStalls", RivalStalls)
 startSystem("MarketOrders", MarketOrders)
 startSystem("OgaPepperpot", OgaPepperpot)
+startSystem("FusePot", FusePot)
 if MarketOrders and started.OgaPepperpot then
 	MarketOrders.bossEnabled = true
 end

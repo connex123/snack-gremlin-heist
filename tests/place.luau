@@ -72,6 +72,7 @@ for _, path in {
 	"ServerScriptService.ShotDirectorServer",
 	"ServerScriptService.Server.MarketOrders",
 	"ServerScriptService.Server.OgaPepperpot",
+	"ServerScriptService.Server.FusePot",
 	"ReplicatedStorage.Shared.ShotDirector",
 	"ReplicatedStorage.Shared.ShotFraming",
 	"ReplicatedStorage.Shared.Remotes",

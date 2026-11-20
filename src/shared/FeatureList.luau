@@ -17,6 +17,7 @@ FeatureList.SYSTEM_LABELS = {
 	{ system = "PocketPirates", label = "PIRATES" },
 	{ system = "OgaPepperpot", label = "BOSS" },
 	{ system = "ShutterLock", label = "LOCK" },
+	{ system = "FusePot", label = "FUSE" },
 	{ system = "MarketOrders", label = "ORDERS" },
 	{ system = "Rebirth", label = "REBIRTH" },
 }

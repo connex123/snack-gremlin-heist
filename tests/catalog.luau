@@ -118,5 +118,14 @@ local rare = OrderBook.make(OrderBook.template("placeRare"), 0, 0)
 check(not OrderBook.apply(rare, "place", 1, "Uncommon"), "Uncommon is not Rare+")
 check(OrderBook.apply(rare, "place", 1, "Epic") and rare.reward == "Epic gremlin", "Epic counts for Rare+")
 check(#OrderBook.candidates({}, false) == #OrderBook.TEMPLATES - 1, "boss order only with the boss")
-print("strip: " .. FeatureList.build(4, { LagoonSurge = true, PocketPirates = true, OgaPepperpot = true, ShutterLock = true, MarketOrders = true, Rebirth = true }))
+-- fuse pot
+local FuseRules = load("FuseRules")
+check(FuseRules.nextRarity("Common") == "Uncommon" and FuseRules.nextRarity("Secret") == nil, "fuse ladder")
+local function rarityOf(id) local g = Catalog.get(id) return g and g.rarity end
+local function incomeOf(id) local g = Catalog.get(id) return g and g.income or 0 end
+local slots = { [1] = { id = "SuyaSamurai" }, [2] = { id = "PuffPuffPaladin" }, [3] = { id = "KilishiKnight" }, [5] = { id = "GarriGoblin" }, [7] = { id = "PlantainPharaoh" }, [8] = { id = "TigerNutToad" } }
+local fr, fi = FuseRules.findFusable(slots, rarityOf, incomeOf)
+check(fr == "Common" and fi and #fi == 3 and fi[1] == 2, "fuses the lowest rarity with 3, cheapest first: " .. tostring(fr))
+check(FuseRules.findFusable({ [1] = { id = "SuyaSamurai" } }, rarityOf, incomeOf) == nil, "nothing to fuse")
+print("strip: " .. FeatureList.build(5, { LagoonSurge = true, PocketPirates = true, OgaPepperpot = true, ShutterLock = true, FusePot = true, MarketOrders = true, Rebirth = true }))
 print(failures == 0 and "ALL CHECKS PASSED" or (failures .. " FAILURES"))
